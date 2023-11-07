@@ -28,9 +28,8 @@ public class FlightSchedulePlan implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightSchedulePlanId;
-    @Column(length = 64, nullable = false)
     
-    @OneToOne(optional = false)
+    @OneToOne(optional = false, mappedBy = "flightSchedulePlan")
     @JoinColumn(nullable = false)
     private Flight flight;
     @ManyToMany (mappedBy = "flightSchedulePlans")

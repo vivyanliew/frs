@@ -16,6 +16,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -35,9 +36,13 @@ public class FlightSchedule implements Serializable {
     @Column(nullable = false)
     @NotNull
     private int flightDurationHours;
-
+    
+    @OneToOne(optional = false,mappedBy = "flightSchedule")
+    private SeatInventory seatInventory;
     @ManyToMany
     private List<FlightSchedulePlan> flightSchedulePlans;
+    @ManyToMany
+    private List<FlightReservation> flightReservations;
 
     public FlightSchedule() {
     }
@@ -45,6 +50,22 @@ public class FlightSchedule implements Serializable {
     public FlightSchedule(LocalDateTime departureDateTime, int flightDurationHours) {
         this.departureDateTime = departureDateTime;
         this.flightDurationHours = flightDurationHours;
+    }
+
+    public SeatInventory getSeatInventory() {
+        return seatInventory;
+    }
+
+    public void setSeatInventory(SeatInventory seatInventory) {
+        this.seatInventory = seatInventory;
+    }
+
+    public List<FlightReservation> getFlightReservations() {
+        return flightReservations;
+    }
+
+    public void setFlightReservations(List<FlightReservation> flightReservations) {
+        this.flightReservations = flightReservations;
     }
 
     public List<FlightSchedulePlan> getFlightSchedulePlans() {

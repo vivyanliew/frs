@@ -5,12 +5,15 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 /**
  *
@@ -27,25 +30,20 @@ public class FlightReservation implements Serializable {
     @ManyToOne (optional = false)
     @JoinColumn(nullable = false)
     private Customer customer;
-    @ManyToOne (optional = false)
-    @JoinColumn(nullable = false)
-    private Flight flight;
+    @ManyToMany
+    private List<FlightSchedule> flightSchedules;
 
     public FlightReservation() {
     }
 
-    public FlightReservation(Customer customer, Flight flight) {
-        this.customer = customer;
-        this.flight = flight;
+    public List<FlightSchedule> getFlightSchedules() {
+        return flightSchedules;
     }
 
-    public Flight getFlight() {
-        return flight;
+    public void setFlightSchedules(List<FlightSchedule> flightSchedules) {
+        this.flightSchedules = flightSchedules;
     }
-
-    public void setFlight(Flight flight) {
-        this.flight = flight;
-    }
+    
 
     public Customer getCustomer() {
         return customer;

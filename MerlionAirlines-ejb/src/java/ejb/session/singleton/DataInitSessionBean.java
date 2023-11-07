@@ -33,10 +33,10 @@ public class DataInitSessionBean {
     @PostConstruct
     public void postConstruct() {
         if (em.find(Employee.class,1l)==null) {
-            employeeSessionBeanLocal.createNewEmployee(new Employee("margaret","margaret123@gmail.com","123",EmployeeUserRole.FLEETMANAGER));
-            employeeSessionBeanLocal.createNewEmployee(new Employee("bob","bob123@gmail.com","123",EmployeeUserRole.ROUTEPLANNER));
-            employeeSessionBeanLocal.createNewEmployee(new Employee("max","max123@gmail.com","123",EmployeeUserRole.SALESMANAGER));
-            employeeSessionBeanLocal.createNewEmployee(new Employee("anne","anne123@gmail.com","123",EmployeeUserRole.SCHEDULEMANAGER));
+            employeeSessionBeanLocal.createNewEmployee(new Employee("margaret","margaret123@gmail.com","123456789",EmployeeUserRole.FLEETMANAGER));
+            employeeSessionBeanLocal.createNewEmployee(new Employee("bob","bob123@gmail.com","123456789",EmployeeUserRole.ROUTEPLANNER));
+            employeeSessionBeanLocal.createNewEmployee(new Employee("max","max123@gmail.com","123456789",EmployeeUserRole.SALESMANAGER));
+            employeeSessionBeanLocal.createNewEmployee(new Employee("anne","anne123@gmail.com","123456789",EmployeeUserRole.SCHEDULEMANAGER));
         }
     }
 }
