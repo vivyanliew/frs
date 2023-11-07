@@ -7,6 +7,7 @@ package entity;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Column;
@@ -30,7 +31,7 @@ public class FlightSchedule implements Serializable {
     private Long flightScheduleId;
     @Column(nullable = false)
     @NotNull
-    private Date departureDateTime;
+    private LocalDateTime departureDateTime;
     @Column(nullable = false)
     @NotNull
     private int flightDurationHours;
@@ -41,7 +42,7 @@ public class FlightSchedule implements Serializable {
     public FlightSchedule() {
     }
 
-    public FlightSchedule(Date departureDateTime, int flightDurationHours) {
+    public FlightSchedule(LocalDateTime departureDateTime, int flightDurationHours) {
         this.departureDateTime = departureDateTime;
         this.flightDurationHours = flightDurationHours;
     }
@@ -59,7 +60,7 @@ public class FlightSchedule implements Serializable {
         return dateFormat.format(this.departureDateTime);
     }
 
-    public void setDepartureDateTime(Date departureDateTime) {
+    public void setDepartureDateTime(LocalDateTime departureDateTime) {
         this.departureDateTime = departureDateTime;
     }
 
@@ -77,6 +78,12 @@ public class FlightSchedule implements Serializable {
 
     public void setFlightScheduleId(Long flightScheduleId) {
         this.flightScheduleId = flightScheduleId;
+    }
+
+    public String getArrivalDateTime() {
+        LocalDateTime arrivalDateTime = this.departureDateTime.plusHours(this.flightDurationHours);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        return dateFormat.format(arrivalDateTime);
     }
 
     @Override

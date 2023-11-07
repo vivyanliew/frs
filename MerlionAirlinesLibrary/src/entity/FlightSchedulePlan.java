@@ -11,7 +11,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -27,24 +29,30 @@ public class FlightSchedulePlan implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightSchedulePlanId;
     @Column(length = 64, nullable = false)
-    @NotNull
-    @Size(min = 1, max = 64)
-    private String flightNumber;
-
-    @ManyToMany
+    
+    @OneToOne(optional = false)
+    @JoinColumn(nullable = false)
+    private Flight flight;
+    @ManyToMany (mappedBy = "flightSchedulePlans")
     private List<FlightSchedule> flightSchedules;
 
+
+    public FlightSchedulePlan() {}
+
+    public Flight getFlight() {
+        return flight;
+    }
+
+    public void setFlight(Flight flight) {
+        this.flight = flight;
+    }
+    
+    
     public Long getFlightSchedulePlanId() {
         return flightSchedulePlanId;
     }
 
-    public String getFlightNumber() {
-        return flightNumber;
-    }
-
-    public void setFlightNumber(String flightNumber) {
-        this.flightNumber = flightNumber;
-    }
+    
 
     public List<FlightSchedule> getFlightSchedules() {
         return flightSchedules;

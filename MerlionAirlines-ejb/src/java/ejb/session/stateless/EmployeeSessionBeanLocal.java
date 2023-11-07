@@ -4,6 +4,7 @@
  */
 package ejb.session.stateless;
 
+import entity.Employee;
 import javax.ejb.Local;
 
 /**
@@ -12,5 +13,7 @@ import javax.ejb.Local;
  */
 @Local
 public interface EmployeeSessionBeanLocal {
+
+    public Long createNewEmployee(Employee employee);
     
 }

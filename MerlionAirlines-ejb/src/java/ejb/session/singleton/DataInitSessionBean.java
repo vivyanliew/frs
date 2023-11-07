@@ -5,6 +5,7 @@
 package ejb.session.singleton;
 
 import ejb.session.stateless.EmployeeSessionBeanLocal;
+import entity.Employee;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
@@ -12,6 +13,7 @@ import javax.ejb.LocalBean;
 import javax.ejb.Startup;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import util.enumeration.EmployeeUserRole;
 
 /**
  *
@@ -30,6 +32,11 @@ public class DataInitSessionBean {
     
     @PostConstruct
     public void postConstruct() {
-        
+        if (em.find(Employee.class,1l)==null) {
+            employeeSessionBeanLocal.createNewEmployee(new Employee("margaret","margaret123@gmail.com","123",EmployeeUserRole.FLEETMANAGER));
+            employeeSessionBeanLocal.createNewEmployee(new Employee("bob","bob123@gmail.com","123",EmployeeUserRole.ROUTEPLANNER));
+            employeeSessionBeanLocal.createNewEmployee(new Employee("max","max123@gmail.com","123",EmployeeUserRole.SALESMANAGER));
+            employeeSessionBeanLocal.createNewEmployee(new Employee("anne","anne123@gmail.com","123",EmployeeUserRole.SCHEDULEMANAGER));
+        }
     }
 }

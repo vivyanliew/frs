@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -42,6 +43,8 @@ public class Flight implements Serializable {
     private AircraftConfig aircraftConfig;
     @OneToMany
     private List<FlightReservation> flightReservations;
+    @OneToOne(optional = false)
+    private FlightSchedulePlan flightSchedulePlan;
 
     public Flight() {
     }
@@ -50,6 +53,14 @@ public class Flight implements Serializable {
         this.flightNumber = flightNumber;
         this.flightRoute = flightRoute;
         this.aircraftConfig = aircraftConfig;
+    }
+
+    public FlightSchedulePlan getFlightSchedulePlan() {
+        return flightSchedulePlan;
+    }
+
+    public void setFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan) {
+        this.flightSchedulePlan = flightSchedulePlan;
     }
 
     public List<FlightReservation> getFlightReservations() {
