@@ -4,6 +4,7 @@
  */
 package ejb.session.stateless;
 
+import entity.AircraftType;
 import javax.ejb.Local;
 
 /**
@@ -11,6 +12,8 @@ import javax.ejb.Local;
  * @author liewvivyan
  */
 @Local
-public interface AircraftTypeLocal {
+public interface AircraftTypeSessionBeanLocal {
+
+    public AircraftType createNewAircraftType(AircraftType aircraftType);
     
 }

@@ -4,8 +4,12 @@
  */
 package ejb.session.singleton;
 
+import ejb.session.stateless.AircraftTypeSessionBeanLocal;
+import ejb.session.stateless.AirportSessionBeanLocal;
 import ejb.session.stateless.EmployeeSessionBeanLocal;
 import ejb.session.stateless.PartnerSessionBeanLocal;
+import entity.AircraftType;
+import entity.Airport;
 import entity.Employee;
 import entity.Partner;
 import javax.annotation.PostConstruct;
@@ -26,6 +30,12 @@ import util.enumeration.EmployeeUserRole;
 @Startup
 public class DataInitSessionBean {
 
+    @EJB(name = "AircraftTypeSessionBeanLocal")
+    private AircraftTypeSessionBeanLocal aircraftTypeSessionBeanLocal;
+
+    @EJB(name = "AirportSessionBeanLocal")
+    private AirportSessionBeanLocal airportSessionBeanLocal;
+
     @EJB(name = "PartnerSessionBeanLocal")
     private PartnerSessionBeanLocal partnerSessionBeanLocal;
 
@@ -34,6 +44,7 @@ public class DataInitSessionBean {
 
     @EJB(name = "EmployeeSessionBeanLocal")
     private EmployeeSessionBeanLocal employeeSessionBeanLocal;
+    
     
     
     @PostConstruct
@@ -48,6 +59,12 @@ public class DataInitSessionBean {
         if (em.find(Partner.class,1l)==null) {
             partnerSessionBeanLocal.createNewPartner(new Partner("chloe","chloe123@gmail.com", "123456789"));
         }
-        
+        if (em.find(Airport.class,1l)==null){
+            airportSessionBeanLocal.createNewAirport(new Airport("Singapore Changi Airport", "SIN", "Singapore","Singapore","Singapore"));
+        }
+        if (em.find(AircraftType.class,1l)==null) {
+            aircraftTypeSessionBeanLocal.createNewAircraftType(new AircraftType("Boeing 737 narrow-body short-range",300));
+            aircraftTypeSessionBeanLocal.createNewAircraftType(new AircraftType("Boeing 747 wide-body long-range",300));
+        }
     }
 }
