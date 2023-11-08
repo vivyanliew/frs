@@ -40,11 +40,11 @@ public class AircraftConfig implements Serializable {
     @Min(1)
     @Max(4)
     private int numCabinClasses;
-    @Column(nullable = false)
-    @NotNull
-    @Min(1)
-    @Max(1000)
-    private int maxSeatCapacity;
+//    @Column(nullable = false)
+//    @NotNull
+//    @Min(1)
+//    @Max(1000)
+//    private int maxSeatCapacity;
     
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
@@ -57,12 +57,19 @@ public class AircraftConfig implements Serializable {
     public AircraftConfig() {
     }
 
-    public AircraftConfig(AircraftType aircraftType, String aircraftConfigName, int numCabinClasses, List<CabinClass> cabinClasses) {
-        this.aircraftType = aircraftType;
+    public AircraftConfig(String aircraftConfigName, int numCabinClasses) {
+    
         this.aircraftConfigName = aircraftConfigName;
         this.numCabinClasses = numCabinClasses;
-        this.cabinClasses = cabinClasses;
-        this.maxSeatCapacity = calculateMaxSeatCapacity(this.cabinClasses);
+        //this.maxSeatCapacity = calculateMaxSeatCapacity(this.cabinClasses);
+    }
+
+    public List<Flight> getFlights() {
+        return flights;
+    }
+
+    public void setFlights(List<Flight> flights) {
+        this.flights = flights;
     }
     
     @Override
@@ -98,7 +105,7 @@ public class AircraftConfig implements Serializable {
         this.aircraftConfigId = aircraftConfigId;
     }
     
-    private int calculateMaxSeatCapacity(List<CabinClass> cabinClasses) {
+    private int getMaxSeatCapacity(List<CabinClass> cabinClasses) {
         int max = 0;
         int count = 0;
         while (!cabinClasses.isEmpty()) {
@@ -139,9 +146,6 @@ public class AircraftConfig implements Serializable {
     /**
      * @return the maxSeatCapacity
      */
-    public int getMaxSeatCapacity() {
-        return maxSeatCapacity;
-    }
 
     /**
      * @return the cabinClasses
