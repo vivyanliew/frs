@@ -25,6 +25,11 @@ public class AircraftTypeSessionBean implements AircraftTypeSessionBeanRemote, A
         em.flush();
         return aircraftType;
     }
+    
+   public AircraftType retrieveAircraftById(Long id) {
+       AircraftType a = em.find(AircraftType.class,id);
+       return a;
+   }
 
     // Add business logic below. (Right-click in editor and choose
     // "Insert Code > Add Business Method")

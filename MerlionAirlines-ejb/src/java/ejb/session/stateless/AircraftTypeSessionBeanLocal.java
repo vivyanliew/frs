@@ -15,5 +15,7 @@ import javax.ejb.Local;
 public interface AircraftTypeSessionBeanLocal {
 
     public AircraftType createNewAircraftType(AircraftType aircraftType);
+
+    public AircraftType retrieveAircraftById(Long id);
     
 }

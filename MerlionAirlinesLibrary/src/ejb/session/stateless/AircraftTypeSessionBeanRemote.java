@@ -14,4 +14,5 @@ import javax.ejb.Remote;
 @Remote
 public interface AircraftTypeSessionBeanRemote {
     public AircraftType createNewAircraftType(AircraftType aircraftType);
+    public AircraftType retrieveAircraftById(Long id);
 }

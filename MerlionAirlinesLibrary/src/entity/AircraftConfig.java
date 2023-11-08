@@ -33,12 +33,12 @@ public class AircraftConfig implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long aircraftConfigId;
     @Column(length = 100, nullable = false)
-    @NotNull
-    @Size(max = 100)
+//    @NotNull
+//    @Size(max = 100)
     private String aircraftConfigName;
     @Column(nullable = false)
-    @Min(1)
-    @Max(4)
+//    @Min(1)
+//    @Max(4)
     private int numCabinClasses;
 //    @Column(nullable = false)
 //    @NotNull

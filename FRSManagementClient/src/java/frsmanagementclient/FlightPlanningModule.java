@@ -5,9 +5,15 @@
 package frsmanagementclient;
 
 import ejb.session.stateless.AircraftConfigSessionBeanRemote;
+import ejb.session.stateless.AircraftTypeSessionBeanRemote;
+import ejb.session.stateless.CabinClassSessionBeanRemote;
 import ejb.session.stateless.FlightRouteSessionBeanRemote;
 import entity.AircraftConfig;
+import entity.AircraftType;
+import entity.CabinClass;
 import entity.Employee;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import util.enumeration.EmployeeUserRole;
 
@@ -21,14 +27,19 @@ public class FlightPlanningModule {
     private FlightRouteSessionBeanRemote flightRouteSessionBeanRemote;
 
     private Employee currEmployee;
+    private CabinClassSessionBeanRemote cabinClassSessionBeanRemote;
+    private AircraftType aircraftType;
+    private AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote;
 
     public FlightPlanningModule() {
     }
 
-    public FlightPlanningModule(AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote, FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, Employee currEmployee) {
+    public FlightPlanningModule(AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote, FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, Employee currEmployee,CabinClassSessionBeanRemote cabinClassSessionBeanRemote, AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote) {
         this.aircraftConfigSessionBeanRemote = aircraftConfigSessionBeanRemote;
         this.flightRouteSessionBeanRemote = flightRouteSessionBeanRemote;
         this.currEmployee = currEmployee;
+        this.cabinClassSessionBeanRemote = cabinClassSessionBeanRemote;
+        this.aircraftTypeSessionBeanRemote = aircraftTypeSessionBeanRemote;
     }
 
     void mainMenu() {
@@ -49,7 +60,7 @@ public class FlightPlanningModule {
                     response = sc.nextInt();
 
                     if (response == 1) {
-
+                        createAircraftConfig();
                     } else if (response == 2) {
 
                     } else if (response == 3) {
@@ -99,16 +110,51 @@ public class FlightPlanningModule {
     void createAircraftConfig() {
         Scanner sc = new Scanner(System.in);
         AircraftConfig newAircraftConfig = new AircraftConfig();
+        System.out.println("Enter Aircraft Type Id> ");
+        AircraftType aircraftType = aircraftTypeSessionBeanRemote.retrieveAircraftById((long)sc.nextInt());
+        newAircraftConfig.setAircraftType(aircraftType);
+        sc.nextLine();
         System.out.println("Enter Aircraft Configuration Name> ");
         newAircraftConfig.setAircraftConfigName(sc.nextLine());
         System.out.println("Enter number of cabin classes");
         int numCabinClass = sc.nextInt();
+        newAircraftConfig.setNumCabinClasses(numCabinClass);
+        
         //for loop to create each cabin class
         //newAircraftConfig.getCabinClasses().add(cabinclass)
         //after for loop, aircraftConfigSessionBeanRemote.createaircraftconfig(newAircraftconfig)
+        List<CabinClass> allCabins = new ArrayList<>();
         for (int i = 0; i < numCabinClass; i++){
-            
+            //int numAisles, int numRows, int numSeatsAbreast
+            CabinClass currCabinClass = new CabinClass();
+            System.out.println("Enter number of aisles");
+            int numAisles = sc.nextInt();
+            currCabinClass.setNumAisles(numAisles);
+            System.out.println("Enter number of rows");
+            currCabinClass.setNumRows(sc.nextInt());
+            System.out.println("Enter number of seats abreast");
+            currCabinClass.setNumSeatsAbreast(sc.nextInt());
+            sc.nextLine();
+            System.out.println("Enter actual seat configuration per column");
+            currCabinClass.setActualSeatConfigPerCol(sc.nextLine());
+//            int numColumn = numAisles + 1;
+//            List<Integer> totalSeats = new ArrayList<>();
+//            for (int j = 0; j < numColumn; j++) {
+//                System.out.println("Enter number of seats for column "+ (j+1));
+//                totalSeats.add(sc.nextInt());
+//                //currCabinClass.getActualSeatConfigPerCol().add(sc.nextInt());
+//            }
+//            currCabinClass.setActualSeatConfigPerCol(totalSeats);
+
+            currCabinClass = cabinClassSessionBeanRemote.createCabinClass(currCabinClass);
+            //System.out.println("hello");
+            allCabins.add(currCabinClass);
+            //newAircraftConfig.getCabinClasses().add(currCabinClass);
+            //System.out.println("byebye");
         }
+        newAircraftConfig.setCabinClasses(allCabins);
+        newAircraftConfig = aircraftConfigSessionBeanRemote.createNewAircraftConfig(newAircraftConfig);
+        System.out.println("New Aircraft Configuration " + newAircraftConfig.getAircraftConfigId() + " created successfully!");
     }
 
 }

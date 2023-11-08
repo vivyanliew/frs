@@ -14,6 +14,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
+import javax.validation.ValidationException;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -31,26 +33,26 @@ public class CabinClass implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long cabinClassId;
     @Column(nullable = false)
-    @NotNull
-    @Min(0)
-    @Max(2)
+//    @NotNull
+//    @Min(0)
+//    @Max(2)
     private int numAisles;
     @Column(nullable = false)
-    @NotNull
-    @Min(1)
+//    @NotNull
+//    @Min(1)
     private int numRows;
     @Column(nullable = false)
-    @NotNull
-    @Min(1)
+//    @NotNull
+//    @Min(1)
     private int numSeatsAbreast;
     @Column(nullable = false)
-    @NotNull
+    //@NotNull
     private String actualSeatConfigPerCol;
-    @Column(nullable = false)
-    @NotNull
-    @Min(1)
-    @Max(1000)
-    private int maxSeatCapacity;
+//    @Column(nullable = false)
+////    @NotNull
+////    @Min(1)
+////    @Max(1000)
+//    private int maxSeatCapacity;
     
     @ManyToMany(mappedBy = "cabinClasses")
     private List<AircraftConfig> aircraftConfigs;
@@ -68,8 +70,8 @@ public class CabinClass implements Serializable {
         this.numAisles = numAisles;
         this.numRows = numRows;
         this.numSeatsAbreast = numSeatsAbreast;
+       // this.maxSeatCapacity = this.numRows * this.numSeatsAbreast;
         this.actualSeatConfigPerCol = actualSeatConfigPerCol;
-        this.maxSeatCapacity = this.numRows * this.numSeatsAbreast;
     }
     
     @Override
@@ -147,25 +149,29 @@ public class CabinClass implements Serializable {
         this.numSeatsAbreast = numSeatsAbreast;
     }
 
-    /**
-     * @return the actualSeatConfigPerCol
-     */
     public String getActualSeatConfigPerCol() {
         return actualSeatConfigPerCol;
     }
 
-    /**
-     * @param actualSeatConfigPerCol the actualSeatConfigPerCol to set
-     */
     public void setActualSeatConfigPerCol(String actualSeatConfigPerCol) {
         this.actualSeatConfigPerCol = actualSeatConfigPerCol;
     }
 
+    
+    public List<Fare> getFares() {
+        return fares;
+    }
+
+    public void setFares(List<Fare> fares) {
+        this.fares = fares;
+    }
+
+   
     /**
      * @return the maxSeatCapacity
      */
     public int getMaxSeatCapacity() {
-        return maxSeatCapacity;
+        return this.numRows * this.numSeatsAbreast;
     }
 
     /**
@@ -181,6 +187,7 @@ public class CabinClass implements Serializable {
     public void setAircraftConfigs(List<AircraftConfig> aircraftConfigs) {
         this.aircraftConfigs = aircraftConfigs;
     }
+    
 
     
 }
