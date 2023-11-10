@@ -26,6 +26,7 @@ public class AircraftTypeSessionBean implements AircraftTypeSessionBeanRemote, A
         return aircraftType;
     }
     
+    @Override
    public AircraftType retrieveAircraftById(Long id) {
        AircraftType a = em.find(AircraftType.class,id);
        return a;

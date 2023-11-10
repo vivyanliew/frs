@@ -5,6 +5,7 @@
 package ejb.session.stateless;
 
 import entity.AircraftConfig;
+import java.util.List;
 import javax.ejb.Local;
 
 /**
@@ -15,5 +16,9 @@ import javax.ejb.Local;
 public interface AircraftConfigSessionBeanLocal {
 
     public AircraftConfig createNewAircraftConfig(AircraftConfig aircraftConfig);
+
+    public List<AircraftConfig> getAllAircraftConfigs();
+
+    public AircraftConfig viewAircraftConfigDetails(String aircraftConfigName);
     
 }

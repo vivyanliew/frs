@@ -62,9 +62,9 @@ public class FlightPlanningModule {
                     if (response == 1) {
                         createAircraftConfig();
                     } else if (response == 2) {
-
+                        viewAircraftConfigs();
                     } else if (response == 3) {
-
+                        viewAircraftConfigDetails();
                     } else if (response == 4) {
                         break;
 
@@ -74,6 +74,7 @@ public class FlightPlanningModule {
                 }
             }
             if (currEmployee.getUserRole() == EmployeeUserRole.ROUTEPLANNER) {
+                System.out.println("*** Flight Planning ***\n");
                 System.out.println("1: Create Flight Route");
                 System.out.println("2: View All Flight Routes");
                 System.out.println("3: Delete Flight Route");
@@ -161,5 +162,30 @@ public class FlightPlanningModule {
         newAircraftConfig = aircraftConfigSessionBeanRemote.createNewAircraftConfig(newAircraftConfig);
         System.out.println("New Aircraft Configuration " + newAircraftConfig.getAircraftConfigId() + " created successfully!");
     }
-
+    
+    void viewAircraftConfigs() {
+    
+        List<AircraftConfig> aircraftConfigs = aircraftConfigSessionBeanRemote.getAllAircraftConfigs();
+        for (AircraftConfig a: aircraftConfigs) {
+            System.out.println(a.getAircraftConfigName() + ": "+a.getAircraftType().getAircraftTypeName());
+        }
+    }
+    
+    void viewAircraftConfigDetails() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter Aircraft Config Name");
+        String name = sc.nextLine().trim();
+        AircraftConfig a = aircraftConfigSessionBeanRemote.viewAircraftConfigDetails(name);
+        System.out.println(a.getAircraftConfigName() + ": "+a.getAircraftType().getAircraftTypeName());
+        System.out.println("Number of cabin classes: "+ a.getCabinClasses().size());
+        for (int i = 0; i < a.getNumCabinClasses(); i++){
+            CabinClass c = a.getCabinClasses().get(i);
+            System.out.println("Cabin class " + (i+1) + " details:");
+            System.out.println("Number of rows : " + c.getNumRows());
+            System.out.println("Number of seats abreast: " + c.getNumSeatsAbreast());
+            System.out.println("Actual Seating configuration per column : " + c.getActualSeatConfigPerCol());
+            System.out.println("Maximum seat capacity for this cabin: " + c.getMaxSeatCapacity());
+        }
+    }
+    
 }

@@ -5,6 +5,7 @@
 package ejb.session.stateless;
 
 import entity.AircraftConfig;
+import entity.CabinClass;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -30,8 +31,32 @@ public class AircraftConfigSessionBean implements AircraftConfigSessionBeanRemot
         return aircraftConfig;
     }
     
-    //public List<AircraftConfig> getAllAircraftConfigs() {
-        //Query query =  em.createQuery("SELECT ac FROM AircraftConfig ac WHERE mg.student.studentNumber = :inStudentNumber");
+    public List<AircraftConfig> getAllAircraftConfigs() {
+        Query query =  em.createQuery("SELECT ac FROM AircraftConfig ac");
+        List<AircraftConfig> results = query.getResultList();
+        for (AircraftConfig a : results) {
+            a.getAircraftType().getAircraftTypeName();
+            a.getAircraftConfigName();
+        }
+        return results;
 
-    //}
+    }
+    
+    public AircraftConfig viewAircraftConfigDetails(String aircraftConfigName) {
+        Query query = em.createQuery("SELECT a FROM AircraftConfig a WHERE a.aircraftConfigName = :name");
+        
+//        Query query =  em.createQuery("SELECT ac FROM AircraftConfig ac WEHRE ac.aircraftConfigName = :name");
+        query.setParameter("name",aircraftConfigName);
+        AircraftConfig a = (AircraftConfig)query.getSingleResult();
+        a.getAircraftConfigName();
+        a.getAircraftType().getAircraftTypeName();
+        a.getCabinClasses().size();
+        for (CabinClass c: a.getCabinClasses()){
+            c.getNumRows();
+            c.getNumSeatsAbreast();
+            c.getActualSeatConfigPerCol();
+            c.getMaxSeatCapacity();
+        }
+        return a;
+    }
 }
