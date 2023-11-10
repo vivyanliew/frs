@@ -5,6 +5,7 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -55,6 +56,8 @@ public class AircraftConfig implements Serializable {
     private List<Flight> flights;
 
     public AircraftConfig() {
+        this.cabinClasses = new ArrayList<>();
+        this.flights = new ArrayList<>();
     }
 
     public AircraftConfig(String aircraftConfigName, int numCabinClasses) {

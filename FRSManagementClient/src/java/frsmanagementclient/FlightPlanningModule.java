@@ -120,14 +120,13 @@ public class FlightPlanningModule {
         int numCabinClass = sc.nextInt();
         newAircraftConfig.setNumCabinClasses(numCabinClass);
         
-        //for loop to create each cabin class
-        //newAircraftConfig.getCabinClasses().add(cabinclass)
-        //after for loop, aircraftConfigSessionBeanRemote.createaircraftconfig(newAircraftconfig)
         List<CabinClass> allCabins = new ArrayList<>();
-        for (int i = 0; i < numCabinClass; i++){
+        int totalCabinClassSeats = 0;
+        while (true) {
+            for (int i = 0; i < numCabinClass; i++){
             //int numAisles, int numRows, int numSeatsAbreast
             CabinClass currCabinClass = new CabinClass();
-            System.out.println("Enter number of aisles");
+            System.out.println("Enter number of aisles for cabin " + (i+1));
             int numAisles = sc.nextInt();
             currCabinClass.setNumAisles(numAisles);
             System.out.println("Enter number of rows");
@@ -147,11 +146,17 @@ public class FlightPlanningModule {
 //            currCabinClass.setActualSeatConfigPerCol(totalSeats);
 
             currCabinClass = cabinClassSessionBeanRemote.createCabinClass(currCabinClass);
-            //System.out.println("hello");
+            totalCabinClassSeats += currCabinClass.getMaxSeatCapacity();
             allCabins.add(currCabinClass);
-            //newAircraftConfig.getCabinClasses().add(currCabinClass);
-            //System.out.println("byebye");
         }
+            if (totalCabinClassSeats > aircraftType.getMaxSeatCapacity()) {
+            System.out.println("Exceeds aircraft type max seat capacity");
+            System.out.println("Re-enter cabin classes");
+        } else {
+                break;
+            }
+        }
+              
         newAircraftConfig.setCabinClasses(allCabins);
         newAircraftConfig = aircraftConfigSessionBeanRemote.createNewAircraftConfig(newAircraftConfig);
         System.out.println("New Aircraft Configuration " + newAircraftConfig.getAircraftConfigId() + " created successfully!");

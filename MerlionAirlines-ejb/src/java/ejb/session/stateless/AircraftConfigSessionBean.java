@@ -5,9 +5,11 @@
 package ejb.session.stateless;
 
 import entity.AircraftConfig;
+import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 /**
  *
@@ -27,4 +29,9 @@ public class AircraftConfigSessionBean implements AircraftConfigSessionBeanRemot
         em.flush();
         return aircraftConfig;
     }
+    
+    //public List<AircraftConfig> getAllAircraftConfigs() {
+        //Query query =  em.createQuery("SELECT ac FROM AircraftConfig ac WHERE mg.student.studentNumber = :inStudentNumber");
+
+    //}
 }
