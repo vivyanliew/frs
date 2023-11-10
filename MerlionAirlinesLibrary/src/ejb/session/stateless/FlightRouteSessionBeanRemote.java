@@ -5,6 +5,7 @@
 package ejb.session.stateless;
 
 import entity.FlightRoute;
+import java.util.List;
 import javax.ejb.Remote;
 
 /**
@@ -15,4 +16,5 @@ import javax.ejb.Remote;
 public interface FlightRouteSessionBeanRemote {
         public FlightRoute createNewFlightRoute(FlightRoute flightRoute);
         public void setReturnRoute(FlightRoute fr1, FlightRoute fr2);
+        public List<FlightRoute> getFlightRoutes();
 }

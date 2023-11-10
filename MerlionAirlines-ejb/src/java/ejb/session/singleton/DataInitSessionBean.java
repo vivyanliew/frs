@@ -59,9 +59,11 @@ public class DataInitSessionBean {
         if (em.find(Partner.class,1l)==null) {
             partnerSessionBeanLocal.createNewPartner(new Partner("chloe","chloe123@gmail.com", "123456789"));
         }
-        if (em.find(Airport.class,1l)==null){
+        if (em.find(Airport.class,3l)==null){
             airportSessionBeanLocal.createNewAirport(new Airport("Singapore Changi Airport", "SIN", "Singapore","Singapore","Singapore"));
             airportSessionBeanLocal.createNewAirport(new Airport("Kuala Lumpur International Airport", "KUL", "Kuala Lumpur", "Selangor", "Malaysia"));
+            airportSessionBeanLocal.createNewAirport(new Airport("Melbourne Airport", "MEL", "Melbourne", "Victoria", "Australia"));
+            
         }
         
         if (em.find(AircraftType.class,1l)==null) {

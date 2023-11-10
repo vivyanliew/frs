@@ -40,13 +40,35 @@ public class FlightRoute implements Serializable {
 
     @OneToOne
     private FlightRoute returnRoute;
+    private boolean isReturn;
+    private boolean isDisabled;
 
     public FlightRoute() {
+        this.isReturn = false;
+        this.isDisabled = false;
+        
+    }
+
+    public boolean isDisabled() {
+        return isDisabled;
+    }
+
+    public void setIsDisabled(boolean isDisabled) {
+        this.isDisabled = isDisabled;
     }
 
     public FlightRoute(Airport originAirport, Airport destinationAirport) {
+        this();
         this.originAirport = originAirport;
         this.destinationAirport = destinationAirport;
+    }
+
+    public boolean isReturn() {
+        return isReturn;
+    }
+
+    public void setIsReturn(boolean isReturn) {
+        this.isReturn = isReturn;
     }
 
     public List<Flight> getFlights() {

@@ -227,7 +227,11 @@ public class FlightPlanningModule {
     }
     
     void viewAllFlightRoutes() {
-        
+        List<FlightRoute> sortedFlightRoutes = flightRouteSessionBeanRemote.getFlightRoutes();
+        for (FlightRoute f: sortedFlightRoutes) {
+            System.out.println(f.getOriginAirport().getIataCode()+" to " + f.getDestinationAirport().getIataCode());
+        }
     }
+    void deleteFlightRoute() {}
     
 }
