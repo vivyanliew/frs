@@ -20,5 +20,7 @@ public interface FlightRouteSessionBeanLocal {
     public void setReturnRoute(FlightRoute fr1, FlightRoute fr2);
 
     public List<FlightRoute> getFlightRoutes();
+
+    public void deleteFlightRoute(Long flightRouteId);
     
 }

@@ -44,19 +44,21 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
     
     @Override
     public List<FlightRoute> getFlightRoutes() {
-        Query query =  em.createQuery("SELECT fr FROM FlightRoute fr");
+        /**Query query =  em.createQuery("SELECT fr FROM FlightRoute fr WHERE fr.originAirport");
         List<FlightRoute> routes = query.getResultList();
         List<String> names = new ArrayList<>();
         for (FlightRoute f: routes) {
             names.add(f.getOriginAirport().getAirportName());
-        }
+        }*/
+        Query query = em.createQuery("SELECT DISTINCT fr.originAirport.airportName FROM FlightRoute fr");
+        List<String> names = query.getResultList();
         Collections.sort(names);
         List<FlightRoute> sortedRoutes = new ArrayList<>();
         for (String name: names) {
             Query query1 = em.createQuery("SELECT fr FROM FlightRoute fr WHERE fr.originAirport.airportName = :n");
             query1.setParameter("n", name);
-            FlightRoute flightRoute = (FlightRoute) query1.getSingleResult();
-            sortedRoutes.add(flightRoute);
+            List<FlightRoute> flightRoute = query1.getResultList();
+            sortedRoutes.addAll(flightRoute);
         }
         List<FlightRoute> ans = new ArrayList<>();
         for (FlightRoute f: sortedRoutes) {
@@ -69,19 +71,13 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
             }
         }
         return ans;
-        
-//        List<FlightRoute> sortedRoutes = new ArrayList<>();
-//        for (FlightRoute f: routes) {
-//            if (f.getReturnRoute()==null && notInAnyReturnRoute(f.getFlightRouteId())) {
-//               sortedRoutes.add(f);
-//            }
-//        }
-//        
-//        for (int i = 0; i < sortedRoutes.size();i++) {
-//            Long returnRouteId = sortedRoutes.get(i).getReturnRoute().getFlightRouteId();
-//            FlightRoute returnRoute = em.find(FlightRoute.class, returnRouteId);
-//            sortedRoutes.add(i+1, returnRoute);
-//        }
-//        return sortedRoutes;
+    }
+    public void deleteFlightRoute(Long flightRouteId) {
+        FlightRoute currRoute = em.find(FlightRoute.class, flightRouteId);
+        if (currRoute.getFlights().size()==0) { //not used by any flights
+            em.remove(currRoute);
+        } else {
+            currRoute.setIsDisabled(true);
+        }
     }
 }
