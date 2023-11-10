@@ -14,4 +14,5 @@ import javax.ejb.Remote;
 @Remote
 public interface AirportSessionBeanRemote {
     public Airport createNewAirport(Airport airport);
+    public Airport retrieveAirportByIATACode(String code);
 }

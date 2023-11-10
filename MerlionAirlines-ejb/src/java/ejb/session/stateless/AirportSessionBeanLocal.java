@@ -15,5 +15,7 @@ import javax.ejb.Local;
 public interface AirportSessionBeanLocal {
 
     public Airport createNewAirport(Airport airport);
+
+    public Airport retrieveAirportByIATACode(String code);
     
 }

@@ -14,4 +14,5 @@ import javax.ejb.Remote;
 @Remote
 public interface FlightRouteSessionBeanRemote {
         public FlightRoute createNewFlightRoute(FlightRoute flightRoute);
+        public void setReturnRoute(FlightRoute fr1, FlightRoute fr2);
 }

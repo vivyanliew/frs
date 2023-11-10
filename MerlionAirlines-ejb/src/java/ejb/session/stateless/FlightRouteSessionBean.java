@@ -5,9 +5,12 @@
 package ejb.session.stateless;
 
 import entity.FlightRoute;
+import java.util.ArrayList;
+import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 /**
  *
@@ -27,4 +30,23 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
         em.flush();
         return flightRoute;
     }
+    
+    @Override
+    public void setReturnRoute(FlightRoute mainFlightRoute, FlightRoute returnFlightRoute) {
+        mainFlightRoute = em.find(FlightRoute.class, mainFlightRoute.getFlightRouteId());
+        returnFlightRoute = em.find(FlightRoute.class, returnFlightRoute.getFlightRouteId());
+        mainFlightRoute.setReturnRoute(returnFlightRoute);
+        //returnFlightRoute.setReturnRoute(mainFlightRoute);
+    }
+    
+//    public List<FlightRoute> getFlightRoutes() {
+//        Query query =  em.createQuery("SELECT fr FROM FlightRoute fr");
+//        List<FlightRoute> routes = query.getResultList();
+//        List<FlightRoute> sortedRoutes = new ArrayList<>();
+//        for (FlightRoute f: routes) {
+//            if (f.getReturnRoute()!=null) {
+//                
+//            }
+//        }
+//    }
 }

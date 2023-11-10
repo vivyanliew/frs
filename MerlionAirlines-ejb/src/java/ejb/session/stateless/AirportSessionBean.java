@@ -8,6 +8,7 @@ import entity.Airport;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 /**
  *
@@ -26,5 +27,10 @@ public class AirportSessionBean implements AirportSessionBeanRemote, AirportSess
         em.persist(airport);
         em.flush();
         return airport;
+    }
+    @Override
+    public Airport retrieveAirportByIATACode(String code) {
+        Query query = em.createQuery("SELECT ap FROM Airport ap WHERE ap.iataCode = :inputCode").setParameter("inputCode", code);
+        return (Airport) query.getSingleResult();
     }
 }

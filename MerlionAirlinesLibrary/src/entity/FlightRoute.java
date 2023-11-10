@@ -27,16 +27,19 @@ public class FlightRoute implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightRouteId;
-    
+
     @OneToOne(optional = false)
     @JoinColumn(nullable = false)
     private Airport originAirport;
     @OneToOne(optional = false)
     @JoinColumn(nullable = false)
     private Airport destinationAirport;
-    
+
     @OneToMany(mappedBy = "flightRoute")
     private List<Flight> flights;
+
+    @OneToOne
+    private FlightRoute returnRoute;
 
     public FlightRoute() {
     }
@@ -44,6 +47,22 @@ public class FlightRoute implements Serializable {
     public FlightRoute(Airport originAirport, Airport destinationAirport) {
         this.originAirport = originAirport;
         this.destinationAirport = destinationAirport;
+    }
+
+    public List<Flight> getFlights() {
+        return flights;
+    }
+
+    public void setFlights(List<Flight> flights) {
+        this.flights = flights;
+    }
+
+    public FlightRoute getReturnRoute() {
+        return returnRoute;
+    }
+
+    public void setReturnRoute(FlightRoute returnRoute) {
+        this.returnRoute = returnRoute;
     }
 
     public Airport getOriginAirport() {
@@ -94,5 +113,5 @@ public class FlightRoute implements Serializable {
     public String toString() {
         return "entity.FlightRoute[ id=" + flightRouteId + " ]";
     }
-    
+
 }

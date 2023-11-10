@@ -4,11 +4,27 @@
  */
 package frsreservationclient;
 
+import java.util.Scanner;
+
 /**
  *
  * @author liewvivyan
  */
 public class MainApp {
-    
-    
+
+    public MainApp() {
     }
+
+    public void runApp() {
+        Scanner sc = new Scanner(System.in);
+        boolean loggedIn = false;
+        while (!loggedIn) {
+            doLogin();
+        }
+    }
+    
+    void doLogin() {
+        
+    }
+
+}

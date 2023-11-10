@@ -6,6 +6,7 @@ package frsmanagementclient;
 
 import ejb.session.stateless.AircraftConfigSessionBeanRemote;
 import ejb.session.stateless.AircraftTypeSessionBeanRemote;
+import ejb.session.stateless.AirportSessionBeanRemote;
 import ejb.session.stateless.CabinClassSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.FlightRouteSessionBeanRemote;
@@ -16,6 +17,7 @@ import java.util.logging.Logger;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import util.enumeration.EmployeeUserRole;
 import util.exception.InvalidLoginCredentialException;
 
 /**
@@ -38,6 +40,7 @@ public class MainApp {
     private FlightRouteSessionBeanRemote flightRouteSessionBeanRemote;
     private CabinClassSessionBeanRemote cabinClassSessionBeanRemote;
     private AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote;
+    private AirportSessionBeanRemote airportSessionBeanRemote;
     
     //flightOperationModule
     private FlightOperationModule flightOperationModule;
@@ -46,12 +49,13 @@ public class MainApp {
     private SalesManagementModule salesManagementModule;
     
     public MainApp() {}
-    public MainApp(EmployeeSessionBeanRemote employeeSessionBeanRemote,AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote ,FlightRouteSessionBeanRemote flightRouteSessionBeanRemote,CabinClassSessionBeanRemote cabinClassSessionBeanRemote,AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote){
+    public MainApp(EmployeeSessionBeanRemote employeeSessionBeanRemote,AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote ,FlightRouteSessionBeanRemote flightRouteSessionBeanRemote,CabinClassSessionBeanRemote cabinClassSessionBeanRemote,AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote,AirportSessionBeanRemote airportSessionBeanRemote){
         this.employeeSessionBeanRemote = employeeSessionBeanRemote;
         this.aircraftConfigSessionBeanRemote = aircraftConfigSessionBeanRemote;
         this.cabinClassSessionBeanRemote = cabinClassSessionBeanRemote;
         this.flightRouteSessionBeanRemote = flightRouteSessionBeanRemote;
         this.aircraftTypeSessionBeanRemote = aircraftTypeSessionBeanRemote;
+        this.airportSessionBeanRemote = airportSessionBeanRemote;
     }
     public void runApp() {
         
@@ -65,10 +69,13 @@ public class MainApp {
                 doLogin();
                 System.out.print("Log-in success!");
                 loggedIn = true;
-                flightPlanningModule = new FlightPlanningModule(aircraftConfigSessionBeanRemote,flightRouteSessionBeanRemote,currentEmployee,cabinClassSessionBeanRemote,aircraftTypeSessionBeanRemote);
+                flightPlanningModule = new FlightPlanningModule(aircraftConfigSessionBeanRemote,flightRouteSessionBeanRemote,currentEmployee,cabinClassSessionBeanRemote,aircraftTypeSessionBeanRemote,airportSessionBeanRemote);
                 flightOperationModule = new FlightOperationModule();
                 salesManagementModule = new SalesManagementModule();
-                flightPlanningModule.mainMenu();
+                if (currentEmployee.getUserRole()==EmployeeUserRole.FLEETMANAGER||currentEmployee.getUserRole()==EmployeeUserRole.ROUTEPLANNER) {
+                    flightPlanningModule.mainMenu();
+                }
+                
             } catch(InvalidLoginCredentialException ex) {
                 System.out.println("Invalid login credential : " + ex.getMessage() + "\n");
             }

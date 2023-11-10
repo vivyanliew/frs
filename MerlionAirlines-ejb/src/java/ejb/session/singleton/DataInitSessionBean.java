@@ -61,7 +61,9 @@ public class DataInitSessionBean {
         }
         if (em.find(Airport.class,1l)==null){
             airportSessionBeanLocal.createNewAirport(new Airport("Singapore Changi Airport", "SIN", "Singapore","Singapore","Singapore"));
+            airportSessionBeanLocal.createNewAirport(new Airport("Kuala Lumpur International Airport", "KUL", "Kuala Lumpur", "Selangor", "Malaysia"));
         }
+        
         if (em.find(AircraftType.class,1l)==null) {
             aircraftTypeSessionBeanLocal.createNewAircraftType(new AircraftType("Boeing 737 narrow-body short-range",300));
             aircraftTypeSessionBeanLocal.createNewAircraftType(new AircraftType("Boeing 747 wide-body long-range",300));
