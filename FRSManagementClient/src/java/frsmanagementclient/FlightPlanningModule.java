@@ -8,7 +8,9 @@ import ejb.session.stateless.AircraftConfigSessionBeanRemote;
 import ejb.session.stateless.AircraftTypeSessionBeanRemote;
 import ejb.session.stateless.AirportSessionBeanRemote;
 import ejb.session.stateless.CabinClassSessionBeanRemote;
+import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.FlightRouteSessionBeanRemote;
+import ejb.session.stateless.FlightSessionBeanRemote;
 import entity.AircraftConfig;
 import entity.AircraftType;
 import entity.Airport;
@@ -18,6 +20,7 @@ import entity.FlightRoute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import javax.ejb.EJB;
 import util.enumeration.EmployeeUserRole;
 
 /**
@@ -57,7 +60,7 @@ public class FlightPlanningModule {
                 System.out.println("1: Create Aircraft Configuration");
                 System.out.println("2: View All Aircraft Configurations");
                 System.out.println("3: View Aircraft Configuration Details");
-                System.out.println("4: Logout\n");
+                System.out.println("4: Logout");               
                 response = 0;
                 while (response < 1 || response > 4) {
                     System.out.print("> ");
@@ -72,6 +75,7 @@ public class FlightPlanningModule {
                         viewAircraftConfigDetails();
                     } else if (response == 4) {
                         break;
+                       
 
                     } else {
                         System.out.println("Invalid option, please try again!\n");
@@ -83,7 +87,7 @@ public class FlightPlanningModule {
                 System.out.println("1: Create Flight Route");
                 System.out.println("2: View All Flight Routes");
                 System.out.println("3: Delete Flight Route");
-                System.out.println("4: Logout\n");
+                System.out.println("4: Logout"); 
                 response = 0;
                 while (response < 1 || response > 4) {
                     System.out.print("> ");
@@ -98,8 +102,9 @@ public class FlightPlanningModule {
                         deleteFlightRoute();
                     } else if (response == 4) {
                         break;
+                        
 
-                    } else {
+                    }  else {
                         System.out.println("Invalid option, please try again!\n");
                     }
                 }
@@ -230,7 +235,12 @@ public class FlightPlanningModule {
     void viewAllFlightRoutes() {
         List<FlightRoute> sortedFlightRoutes = flightRouteSessionBeanRemote.getFlightRoutes();
         for (FlightRoute f : sortedFlightRoutes) {
-            System.out.println(f.getOriginAirport().getIataCode() + " to " + f.getDestinationAirport().getIataCode());
+            if (f.isDisabled()) {
+                System.out.println(f.getOriginAirport().getIataCode() + " to " + f.getDestinationAirport().getIataCode() + "(disabled)");
+            } else {
+                System.out.println(f.getOriginAirport().getIataCode() + " to " + f.getDestinationAirport().getIataCode());
+            }
+
         }
     }
 

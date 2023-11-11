@@ -31,8 +31,9 @@ public class AircraftConfigSessionBean implements AircraftConfigSessionBeanRemot
         return aircraftConfig;
     }
     
+    @Override
     public List<AircraftConfig> getAllAircraftConfigs() {
-        Query query =  em.createQuery("SELECT ac FROM AircraftConfig ac");
+        Query query =  em.createQuery("SELECT ac FROM AircraftConfig ac ORDER BY ac.aircraftType.aircraftTypeName ASC, ac.aircraftConfigName ASC");
         List<AircraftConfig> results = query.getResultList();
         for (AircraftConfig a : results) {
             a.getAircraftType().getAircraftTypeName();
@@ -42,6 +43,7 @@ public class AircraftConfigSessionBean implements AircraftConfigSessionBeanRemot
 
     }
     
+    @Override
     public AircraftConfig viewAircraftConfigDetails(String aircraftConfigName) {
         Query query = em.createQuery("SELECT a FROM AircraftConfig a WHERE a.aircraftConfigName = :name");
         

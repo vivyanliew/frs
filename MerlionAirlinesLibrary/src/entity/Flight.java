@@ -34,6 +34,8 @@ public class Flight implements Serializable {
     @NotNull
     @Pattern(regexp = "ML[A-Za-z0-9]*")
     private String flightNumber;
+    @Column
+    private boolean isReturn;
 
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
@@ -48,13 +50,33 @@ public class Flight implements Serializable {
     @OneToOne(optional = false)
     private FlightSchedulePlan flightSchedulePlan;
 
+    @OneToOne
+    private Flight returnFlight;
+    
     public Flight() {
+        this.isReturn = false;
     }
 
     public Flight(String flightNumber, FlightRoute flightRoute, AircraftConfig aircraftConfig) {
         this.flightNumber = flightNumber;
         this.flightRoute = flightRoute;
         this.aircraftConfig = aircraftConfig;
+    }
+
+    public boolean isIsReturn() {
+        return isReturn;
+    }
+
+    public void setIsReturn(boolean isReturn) {
+        this.isReturn = isReturn;
+    }
+
+    public Flight getReturnFlight() {
+        return returnFlight;
+    }
+
+    public void setReturnFlight(Flight returnFlight) {
+        this.returnFlight = returnFlight;
     }
 
     public FlightSchedulePlan getFlightSchedulePlan() {

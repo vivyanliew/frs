@@ -4,6 +4,7 @@
  */
 package ejb.session.stateless;
 
+import entity.Flight;
 import entity.FlightRoute;
 import java.util.List;
 import javax.ejb.Local;
@@ -13,16 +14,12 @@ import javax.ejb.Local;
  * @author liewvivyan
  */
 @Local
-public interface FlightRouteSessionBeanLocal {
+public interface FlightSessionBeanLocal {
 
-    public FlightRoute createNewFlightRoute(FlightRoute flightRoute);
+    public Flight createNewFlight(Flight flight, FlightRoute route);
 
-    public void setReturnRoute(FlightRoute fr1, FlightRoute fr2);
+    public Flight createReturnFlight(Flight mainFlight, Flight returnFlight);
 
-    public List<FlightRoute> getFlightRoutes();
-
-    public void deleteFlightRoute(Long flightRouteId);
-
-    public List<FlightRoute> retrieveAllFlightRoutes();
+    public List<Flight> retrieveAllFlights();
     
 }

@@ -80,4 +80,9 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
             currRoute.setIsDisabled(true);
         }
     }
+    @Override
+    public List<FlightRoute> retrieveAllFlightRoutes() {
+        Query query = em.createQuery("SELECT fr FROM FlightRoute fr");
+        return query.getResultList();
+    }
 }

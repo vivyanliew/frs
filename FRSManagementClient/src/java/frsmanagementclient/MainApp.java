@@ -10,6 +10,7 @@ import ejb.session.stateless.AirportSessionBeanRemote;
 import ejb.session.stateless.CabinClassSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.FlightRouteSessionBeanRemote;
+import ejb.session.stateless.FlightSessionBeanRemote;
 import entity.Employee;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -44,40 +45,55 @@ public class MainApp {
     
     //flightOperationModule
     private FlightOperationModule flightOperationModule;
-    
+    private FlightSessionBeanRemote flightSessionBeanRemote;
     //salesManagementModule
     private SalesManagementModule salesManagementModule;
     
     public MainApp() {}
-    public MainApp(EmployeeSessionBeanRemote employeeSessionBeanRemote,AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote ,FlightRouteSessionBeanRemote flightRouteSessionBeanRemote,CabinClassSessionBeanRemote cabinClassSessionBeanRemote,AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote,AirportSessionBeanRemote airportSessionBeanRemote){
+    public MainApp(EmployeeSessionBeanRemote employeeSessionBeanRemote,AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote ,FlightRouteSessionBeanRemote flightRouteSessionBeanRemote,CabinClassSessionBeanRemote cabinClassSessionBeanRemote,AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote,AirportSessionBeanRemote airportSessionBeanRemote,FlightSessionBeanRemote flightSessionBeanRemote){
         this.employeeSessionBeanRemote = employeeSessionBeanRemote;
         this.aircraftConfigSessionBeanRemote = aircraftConfigSessionBeanRemote;
         this.cabinClassSessionBeanRemote = cabinClassSessionBeanRemote;
         this.flightRouteSessionBeanRemote = flightRouteSessionBeanRemote;
         this.aircraftTypeSessionBeanRemote = aircraftTypeSessionBeanRemote;
         this.airportSessionBeanRemote = airportSessionBeanRemote;
+        this.flightSessionBeanRemote = flightSessionBeanRemote;
     }
     public void runApp() {
         
         Scanner sc = new Scanner(System.in);
         boolean loggedIn = false;
+        String response = "";
         
         while(!loggedIn) {
             System.out.println("***Welcome to Merlion Airlines FRS Management");
+            //System.out.println("Press Ctrl + Shift + DEL to exit.");
             
             try {
                 doLogin();
-                System.out.print("Log-in success!");
+                System.out.println("Log-in successful!");
                 loggedIn = true;
                 flightPlanningModule = new FlightPlanningModule(aircraftConfigSessionBeanRemote,flightRouteSessionBeanRemote,currentEmployee,cabinClassSessionBeanRemote,aircraftTypeSessionBeanRemote,airportSessionBeanRemote);
-                flightOperationModule = new FlightOperationModule();
+                flightOperationModule = new FlightOperationModule(flightRouteSessionBeanRemote, aircraftConfigSessionBeanRemote, 
+            flightSessionBeanRemote,currentEmployee);
                 salesManagementModule = new SalesManagementModule();
                 if (currentEmployee.getUserRole()==EmployeeUserRole.FLEETMANAGER||currentEmployee.getUserRole()==EmployeeUserRole.ROUTEPLANNER) {
                     flightPlanningModule.mainMenu();
+                } else if (currentEmployee.getUserRole()==EmployeeUserRole.SCHEDULEMANAGER) {
+                     flightOperationModule.mainMenu();
                 }
                 
             } catch(InvalidLoginCredentialException ex) {
                 System.out.println("Invalid login credential : " + ex.getMessage() + "\n");
+            }
+            //loggedIn = false;
+            System.out.println("Do you want to continue?");
+            System.out.println("Press Y to continue");
+            response = sc.nextLine();
+            if (response.equals("Y") || response.equals("y")) {
+                loggedIn = false;
+            } else {
+                loggedIn = true;
             }
         }
     }
