@@ -21,5 +21,7 @@ public interface FlightSessionBeanLocal {
     public Flight createReturnFlight(Flight mainFlight, Flight returnFlight);
 
     public List<Flight> retrieveAllFlights();
+
+    public void deleteFlight(Long flightId);
     
 }

@@ -43,6 +43,8 @@ public class FlightSchedule implements Serializable {
     private List<FlightSchedulePlan> flightSchedulePlans;
     @ManyToMany
     private List<FlightReservation> flightReservations;
+    
+    private boolean isDisabled;
 
     public FlightSchedule() {
     }
@@ -130,6 +132,20 @@ public class FlightSchedule implements Serializable {
     @Override
     public String toString() {
         return "entity.FlightSchedule[ id=" + flightScheduleId + " ]";
+    }
+
+    /**
+     * @return the isDisabled
+     */
+    public boolean isIsDisabled() {
+        return isDisabled;
+    }
+
+    /**
+     * @param isDisabled the isDisabled to set
+     */
+    public void setIsDisabled(boolean isDisabled) {
+        this.isDisabled = isDisabled;
     }
 
 }

@@ -6,6 +6,8 @@ package ejb.session.stateless;
 
 import entity.Flight;
 import entity.FlightRoute;
+import entity.FlightSchedule;
+import entity.FlightSchedulePlan;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -40,11 +42,29 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
         returnRoute.getFlights().add(returnFlight);
         return returnFlight;
     }
+
     @Override
     public List<Flight> retrieveAllFlights() {
         Query query = em.createQuery("SELECT f FROM Flight f ORDER BY f.flightNumber ASC ");
         return query.getResultList();
     }
 
-    
+    @Override
+    public void deleteFlight(Long flightId) {
+
+        Flight flight = em.find(Flight.class, flightId);
+        if (flight.getFlightSchedulePlans().size() == 0) {
+            flight.getFlightRoute().getFlights().remove(flight); //remove flight from flightRoute's list
+            em.remove(flight);
+        } else {
+            List<FlightSchedulePlan> flightSchedulePlans = flight.getFlightSchedulePlans();
+            for (FlightSchedulePlan fsp : flightSchedulePlans) {
+                fsp.setIsDisabled(true);
+                for (FlightSchedule fs : fsp.getFlightSchedules()) {
+                    fs.setIsDisabled(true);
+                }
+            }
+        }
+    }
+
 }

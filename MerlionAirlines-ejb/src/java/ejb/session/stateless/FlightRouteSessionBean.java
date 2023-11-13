@@ -4,7 +4,10 @@
  */
 package ejb.session.stateless;
 
+import entity.Flight;
 import entity.FlightRoute;
+import entity.FlightSchedule;
+import entity.FlightSchedulePlan;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +22,7 @@ import javax.persistence.Query;
  */
 @Stateless
 public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, FlightRouteSessionBeanLocal {
-
+    
     @PersistenceContext(unitName = "MerlionAirlines-ejbPU")
     private EntityManager em;
 
@@ -44,27 +47,28 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
     
     @Override
     public List<FlightRoute> getFlightRoutes() {
-        /**Query query =  em.createQuery("SELECT fr FROM FlightRoute fr WHERE fr.originAirport");
-        List<FlightRoute> routes = query.getResultList();
-        List<String> names = new ArrayList<>();
-        for (FlightRoute f: routes) {
-            names.add(f.getOriginAirport().getAirportName());
-        }*/
+        /**
+         * Query query = em.createQuery("SELECT fr FROM FlightRoute fr WHERE
+         * fr.originAirport"); List<FlightRoute> routes = query.getResultList();
+         * List<String> names = new ArrayList<>(); for (FlightRoute f: routes) {
+         * names.add(f.getOriginAirport().getAirportName());
+        }
+         */
         Query query = em.createQuery("SELECT DISTINCT fr.originAirport.airportName FROM FlightRoute fr");
         List<String> names = query.getResultList();
         Collections.sort(names);
         List<FlightRoute> sortedRoutes = new ArrayList<>();
-        for (String name: names) {
+        for (String name : names) {
             Query query1 = em.createQuery("SELECT fr FROM FlightRoute fr WHERE fr.originAirport.airportName = :n");
             query1.setParameter("n", name);
             List<FlightRoute> flightRoute = query1.getResultList();
             sortedRoutes.addAll(flightRoute);
         }
         List<FlightRoute> ans = new ArrayList<>();
-        for (FlightRoute f: sortedRoutes) {
+        for (FlightRoute f : sortedRoutes) {
             if (!f.isReturn()) {
                 ans.add(f);
-                if (f.getReturnRoute()!=null) {
+                if (f.getReturnRoute() != null) {
                     FlightRoute returnRoute = f.getReturnRoute();
                     ans.add(returnRoute);
                 }
@@ -72,14 +76,27 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
         }
         return ans;
     }
+
+    @Override
     public void deleteFlightRoute(Long flightRouteId) {
         FlightRoute currRoute = em.find(FlightRoute.class, flightRouteId);
-        if (currRoute.getFlights().size()==0) { //not used by any flights
+        if (currRoute.getFlights().size() == 0) { //not used by any flights
             em.remove(currRoute);
         } else {
             currRoute.setIsDisabled(true);
+            List<Flight> flights = currRoute.getFlights();
+            for (Flight f : flights) {
+                f.setIsDisabled(true);
+                for (FlightSchedulePlan flightSchedulePlan : f.getFlightSchedulePlans()) {
+                    flightSchedulePlan.setIsDisabled(true);
+                    for (FlightSchedule fs : flightSchedulePlan.getFlightSchedules()) {
+                        fs.setIsDisabled(true);
+                    }
+                }
+            }        
         }
     }
+
     @Override
     public List<FlightRoute> retrieveAllFlightRoutes() {
         Query query = em.createQuery("SELECT fr FROM FlightRoute fr");

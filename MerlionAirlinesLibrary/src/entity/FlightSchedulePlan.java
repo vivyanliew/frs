@@ -13,6 +13,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -29,11 +31,16 @@ public class FlightSchedulePlan implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightSchedulePlanId;
     
-    @OneToOne(optional = false, mappedBy = "flightSchedulePlan")
+    @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private Flight flight;
     @ManyToMany (mappedBy = "flightSchedulePlans")
     private List<FlightSchedule> flightSchedules;
+    
+    private boolean isDisabled;
+    
+    @OneToMany
+    private List<Fare> fares;
 
 
     public FlightSchedulePlan() {}
@@ -88,6 +95,34 @@ public class FlightSchedulePlan implements Serializable {
     @Override
     public String toString() {
         return "entity.FlightSchedulePlan[ id=" + flightSchedulePlanId + " ]";
+    }
+
+    /**
+     * @return the isDisabled
+     */
+    public boolean isIsDisabled() {
+        return isDisabled;
+    }
+
+    /**
+     * @param isDisabled the isDisabled to set
+     */
+    public void setIsDisabled(boolean isDisabled) {
+        this.isDisabled = isDisabled;
+    }
+
+    /**
+     * @return the fares
+     */
+    public List<Fare> getFares() {
+        return fares;
+    }
+
+    /**
+     * @param fares the fares to set
+     */
+    public void setFares(List<Fare> fares) {
+        this.fares = fares;
     }
 
 }

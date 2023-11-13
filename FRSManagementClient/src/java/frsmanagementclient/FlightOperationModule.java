@@ -6,6 +6,7 @@ package frsmanagementclient;
 
 import ejb.session.stateless.AircraftConfigSessionBeanRemote;
 import ejb.session.stateless.FlightRouteSessionBeanRemote;
+import ejb.session.stateless.FlightSchedulePlanSessionBeanRemote;
 import ejb.session.stateless.FlightSessionBeanRemote;
 import entity.AircraftConfig;
 import entity.Employee;
@@ -23,6 +24,7 @@ public class FlightOperationModule {
     private FlightRouteSessionBeanRemote flightRouteSessionBeanRemote;
     private AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote;
     private FlightSessionBeanRemote flightSessionBeanRemote;
+    private FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote;
 
     private Employee currentEmployee;
 
@@ -30,11 +32,12 @@ public class FlightOperationModule {
     }
 
     public FlightOperationModule(FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote,
-            FlightSessionBeanRemote flightSessionBeanRemote, Employee currentEmployee) {
+            FlightSessionBeanRemote flightSessionBeanRemote, Employee currentEmployee, FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote) {
         this.flightRouteSessionBeanRemote = flightRouteSessionBeanRemote;
         this.aircraftConfigSessionBeanRemote = aircraftConfigSessionBeanRemote;
         this.flightSessionBeanRemote = flightSessionBeanRemote;
         this.currentEmployee = currentEmployee;
+        this.flightSchedulePlanSessionBeanRemote =flightSchedulePlanSessionBeanRemote;
     }
 
     void mainMenu() {
@@ -59,7 +62,10 @@ public class FlightOperationModule {
                     createFlight();
                 } else if (response == 2) {
                     viewAllFlights();
-                } else if (response == 7) {
+                } else if (response ==3) {
+                    viewFlightDetails();
+                } 
+                else if (response == 7) {
                     break;
                 } else {
                     System.out.println("Invalid option, please try again!\n");
@@ -133,5 +139,25 @@ public class FlightOperationModule {
             }
         }
     }
+     void viewFlightDetails(){
+     Scanner sc = new Scanner(System.in);
+     
+     }
+     
+     void deleteFlight() {
+         Scanner sc = new Scanner(System.in);
+        System.out.println("Enter Flight id");
+        Long response = sc.nextLong();
+        flightSessionBeanRemote.deleteFlight(response);
+        System.out.println("Flight " + response + " deleted successfully!");
+     }
+     
+     void deleteFlightSchedulePlan() {
+         Scanner sc = new Scanner(System.in);
+        System.out.println("Enter Flight Schedule Plan id");
+        Long response = sc.nextLong();
+        flightSchedulePlanSessionBeanRemote.deleteFlightSchedulePlan(response);
+        System.out.println("Flight Schedule Plan " + response + " deleted successfully!");
+     }
 
 }

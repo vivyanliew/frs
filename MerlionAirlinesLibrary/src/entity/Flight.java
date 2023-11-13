@@ -45,16 +45,17 @@ public class Flight implements Serializable {
     @JoinColumn(nullable = false)
     private AircraftConfig aircraftConfig;
     
-    @OneToMany
-    private List<FlightReservation> flightReservations;
-    @OneToOne(optional = false)
-    private FlightSchedulePlan flightSchedulePlan;
+    @OneToMany(mappedBy = "flight")
+    private List<FlightSchedulePlan> flightSchedulePlans;
 
     @OneToOne
     private Flight returnFlight;
     
+    private boolean isDisabled;
+    
     public Flight() {
         this.isReturn = false;
+        this.isDisabled = false;
     }
 
     public Flight(String flightNumber, FlightRoute flightRoute, AircraftConfig aircraftConfig) {
@@ -77,22 +78,6 @@ public class Flight implements Serializable {
 
     public void setReturnFlight(Flight returnFlight) {
         this.returnFlight = returnFlight;
-    }
-
-    public FlightSchedulePlan getFlightSchedulePlan() {
-        return flightSchedulePlan;
-    }
-
-    public void setFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan) {
-        this.flightSchedulePlan = flightSchedulePlan;
-    }
-
-    public List<FlightReservation> getFlightReservations() {
-        return flightReservations;
-    }
-
-    public void setFlightReservations(List<FlightReservation> flightReservations) {
-        this.flightReservations = flightReservations;
     }
 
     @Override
@@ -168,6 +153,34 @@ public class Flight implements Serializable {
      */
     public void setAircraftConfig(AircraftConfig aircraftConfig) {
         this.aircraftConfig = aircraftConfig;
+    }
+
+    /**
+     * @return the isDisabled
+     */
+    public boolean isIsDisabled() {
+        return isDisabled;
+    }
+
+    /**
+     * @param isDisabled the isDisabled to set
+     */
+    public void setIsDisabled(boolean isDisabled) {
+        this.isDisabled = isDisabled;
+    }
+
+    /**
+     * @return the flightSchedulePlans
+     */
+    public List<FlightSchedulePlan> getFlightSchedulePlans() {
+        return flightSchedulePlans;
+    }
+
+    /**
+     * @param flightSchedulePlans the flightSchedulePlans to set
+     */
+    public void setFlightSchedulePlans(List<FlightSchedulePlan> flightSchedulePlans) {
+        this.flightSchedulePlans = flightSchedulePlans;
     }
 
 }
