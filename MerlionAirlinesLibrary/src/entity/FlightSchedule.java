@@ -15,7 +15,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 
@@ -39,8 +41,10 @@ public class FlightSchedule implements Serializable {
     
     @OneToOne(optional = false,mappedBy = "flightSchedule")
     private SeatInventory seatInventory;
-    @ManyToMany
-    private List<FlightSchedulePlan> flightSchedulePlans;
+    
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
+    private FlightSchedulePlan flightSchedulePlan;
     @ManyToMany
     private List<FlightReservation> flightReservations;
     
@@ -69,15 +73,6 @@ public class FlightSchedule implements Serializable {
     public void setFlightReservations(List<FlightReservation> flightReservations) {
         this.flightReservations = flightReservations;
     }
-
-    public List<FlightSchedulePlan> getFlightSchedulePlans() {
-        return flightSchedulePlans;
-    }
-
-    public void setFlightSchedulePlans(List<FlightSchedulePlan> flightSchedulePlans) {
-        this.flightSchedulePlans = flightSchedulePlans;
-    }
-
     public String getDepartureDateTime() {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         return dateFormat.format(this.departureDateTime);
@@ -147,5 +142,24 @@ public class FlightSchedule implements Serializable {
     public void setIsDisabled(boolean isDisabled) {
         this.isDisabled = isDisabled;
     }
+
+    /**
+     * @return the flightSchedulePlan
+     */
+    public FlightSchedulePlan getFlightSchedulePlan() {
+        return flightSchedulePlan;
+    }
+
+    /**
+     * @param flightSchedulePlan the flightSchedulePlan to set
+     */
+    public void setFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan) {
+        this.flightSchedulePlan = flightSchedulePlan;
+    }
+
+    /**
+     * @return the flightSchedulePlan
+     */
+    
 
 }

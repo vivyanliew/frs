@@ -31,9 +31,7 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
                 em.remove(fs);
             } else {
                 fs.setIsDisabled(true);
-                for (FlightSchedulePlan fsp : fs.getFlightSchedulePlans()) {
-                    fsp.setIsDisabled(true);
-                }
+                fs.getFlightSchedulePlan().setIsDisabled(true);
             }
         }
         if (!flightSchedulePlan.isIsDisabled()) {

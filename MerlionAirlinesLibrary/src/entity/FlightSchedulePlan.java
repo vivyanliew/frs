@@ -34,13 +34,16 @@ public class FlightSchedulePlan implements Serializable {
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private Flight flight;
-    @ManyToMany (mappedBy = "flightSchedulePlans")
+    @OneToMany (mappedBy = "flightSchedulePlan")
     private List<FlightSchedule> flightSchedules;
     
     private boolean isDisabled;
     
     @OneToMany
     private List<Fare> fares;
+    
+    @OneToOne
+    private FlightSchedulePlan returnFlightSchedulePlan;
 
 
     public FlightSchedulePlan() {}
@@ -123,6 +126,20 @@ public class FlightSchedulePlan implements Serializable {
      */
     public void setFares(List<Fare> fares) {
         this.fares = fares;
+    }
+
+    /**
+     * @return the returnFlightSchedulePlan
+     */
+    public FlightSchedulePlan getReturnFlightSchedulePlan() {
+        return returnFlightSchedulePlan;
+    }
+
+    /**
+     * @param returnFlightSchedulePlan the returnFlightSchedulePlan to set
+     */
+    public void setReturnFlightSchedulePlan(FlightSchedulePlan returnFlightSchedulePlan) {
+        this.returnFlightSchedulePlan = returnFlightSchedulePlan;
     }
 
 }
