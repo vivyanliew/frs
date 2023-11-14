@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -41,7 +42,7 @@ public class FlightSchedule implements Serializable {
     @Column(nullable = false)
     private boolean isDisabled;
     
-    @OneToOne(optional = false,mappedBy = "flightSchedule")
+    @OneToOne(optional = false,mappedBy = "flightSchedule", cascade = CascadeType.REMOVE)
     private SeatInventory seatInventory;
     
     @ManyToOne(optional = false)

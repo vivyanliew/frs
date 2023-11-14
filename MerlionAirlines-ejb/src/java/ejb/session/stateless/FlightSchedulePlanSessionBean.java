@@ -39,14 +39,18 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         for (FlightSchedule fs : flightSchedules) {
             if (fs.getFlightReservations().size()==0) {
                 em.remove(fs);
+                //flightSchedulePlan.getFlightSchedules().remove(fs);
+                em.remove(fs.getSeatInventory());
             } else {
                 fs.setIsDisabled(true);
                 fs.getFlightSchedulePlan().setIsDisabled(true);
                 fs.getFlightSchedulePlan().getReturnFlightSchedulePlan().setIsDisabled(true);
             }
         }
-        if (!flightSchedulePlan.isIsDisabled()) {
+        if (!flightSchedulePlan.isIsDisabled()) { // if not diabled, remove it
             em.remove(flightSchedulePlan);
+            Flight f = flightSchedulePlan.getFlight();
+            f.getFlightSchedulePlans().remove(flightSchedulePlan);
             if (flightSchedulePlan.getReturnFlightSchedulePlan()!=null) {
                 em.remove(flightSchedulePlan.getReturnFlightSchedulePlan());
             }
@@ -90,6 +94,7 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yy, h:mm a");
         return LocalDateTime.parse(dateTimeInput, formatter);
     }
+     
     private void createReturnFlightSchedules(FlightSchedulePlan mainFSP, FlightSchedulePlan returnFSP) {
         mainFSP = em.find(FlightSchedulePlan.class, mainFSP.getFlightSchedulePlanId());
         int numFS = mainFSP.getFlightSchedules().size();
@@ -119,13 +124,14 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         seatInventory.getAllCabinClasses().addAll(f.getAircraftConfig().getCabinClasses());
         int numCabinClasses = f.getAircraftConfig().getNumCabinClasses();
         
-        List<List<String>> toSet = new ArrayList<List<String>>(numCabinClasses);
-        seatInventory.setAvailableSeats(toSet);
+        //ArrayList<List<String>> toSet = ;
+        seatInventory.setAvailableSeats(new ArrayList<List<String>>(numCabinClasses));
    
         for (int i = 0; i < numCabinClasses; i++) {
             CabinClass c  = seatInventory.getAllCabinClasses().get(i);
             int numRows = c.getNumRows();
             int numSeatsAbreast = c.getNumSeatsAbreast();
+            seatInventory.getAvailableSeats().add(new ArrayList<String>(numRows*numSeatsAbreast));
             for(int j = 1; j <= numRows; j++) {
                 for (int k = 0; k < numSeatsAbreast; k++) {
                     char alphabet = (char) ('A' + k);
