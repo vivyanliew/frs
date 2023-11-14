@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -29,28 +30,28 @@ import javax.validation.constraints.Size;
 public class AircraftConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long aircraftConfigId;
     @Column(length = 100, nullable = false)
-//    @NotNull
-//    @Size(max = 100)
+    @NotNull
+    @Size(max = 100)
     private String aircraftConfigName;
     @Column(nullable = false)
-//    @Min(1)
-//    @Max(4)
+    @Min(1)
+    @Max(4)
     private int numCabinClasses;
 //    @Column(nullable = false)
 //    @NotNull
 //    @Min(1)
 //    @Max(1000)
-//    private int maxSeatCapacity;
-    
+private int maxSeatCapacity;
+
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private AircraftType aircraftType;
-    @ManyToMany
+    @ManyToMany(fetch=FetchType.EAGER)
     private List<CabinClass> cabinClasses;
     @OneToMany(mappedBy = "aircraftConfig")
     private List<Flight> flights;
@@ -61,7 +62,8 @@ public class AircraftConfig implements Serializable {
     }
 
     public AircraftConfig(String aircraftConfigName, int numCabinClasses) {
-    
+
+        this();
         this.aircraftConfigName = aircraftConfigName;
         this.numCabinClasses = numCabinClasses;
         //this.maxSeatCapacity = calculateMaxSeatCapacity(this.cabinClasses);
@@ -74,7 +76,7 @@ public class AircraftConfig implements Serializable {
     public void setFlights(List<Flight> flights) {
         this.flights = flights;
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 0;
@@ -99,7 +101,7 @@ public class AircraftConfig implements Serializable {
     public String toString() {
         return "entity.AircraftConfig[ id=" + aircraftConfigId + " ]";
     }
-    
+
     public Long getAircraftConfigId() {
         return aircraftConfigId;
     }
@@ -107,16 +109,19 @@ public class AircraftConfig implements Serializable {
     public void setAircraftConfigId(Long aircraftConfigId) {
         this.aircraftConfigId = aircraftConfigId;
     }
-    
-    private int getMaxSeatCapacity(List<CabinClass> cabinClasses) {
+    private void setMaxSeatCapacity(List<CabinClass> cabinClasses) {
         int max = 0;
-        int count = 0;
-        while (!cabinClasses.isEmpty()) {
-            max += cabinClasses.get(count).getMaxSeatCapacity();
-            count++;
+        for (int i = 0; i < cabinClasses.size(); i++) {
+            max += cabinClasses.get(i).getMaxSeatCapacity();
         }
-        return max;
+        this.maxSeatCapacity = max;
     }
+
+
+     public int getMaxSeatCapacity() {
+        return maxSeatCapacity;
+    }
+
 
     /**
      * @return the aircraftConfigName
@@ -128,7 +133,7 @@ public class AircraftConfig implements Serializable {
     /**
      * @param aircraftConfigName the aircraftConfigName to set
      */
-    public void setAircraftConfigName(String aircraftConfigName) {
+    public void setAircraftConfigName(String aircraftConfigName) {    
         this.aircraftConfigName = aircraftConfigName;
     }
 
@@ -149,7 +154,6 @@ public class AircraftConfig implements Serializable {
     /**
      * @return the maxSeatCapacity
      */
-
     /**
      * @return the cabinClasses
      */
@@ -176,5 +180,12 @@ public class AircraftConfig implements Serializable {
      */
     public void setAircraftType(AircraftType aircraftType) {
         this.aircraftType = aircraftType;
+    }
+
+    /**
+     * @param maxSeatCapacity the maxSeatCapacity to set
+     */
+    public void setMaxSeatCapacity(int maxSeatCapacity) {
+        this.maxSeatCapacity = maxSeatCapacity;
     }
 }

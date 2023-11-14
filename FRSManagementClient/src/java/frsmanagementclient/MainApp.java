@@ -79,11 +79,13 @@ public class MainApp {
                 flightPlanningModule = new FlightPlanningModule(aircraftConfigSessionBeanRemote,flightRouteSessionBeanRemote,currentEmployee,cabinClassSessionBeanRemote,aircraftTypeSessionBeanRemote,airportSessionBeanRemote);
                 flightOperationModule = new FlightOperationModule(flightRouteSessionBeanRemote, aircraftConfigSessionBeanRemote, 
             flightSessionBeanRemote,currentEmployee,flightSchedulePlanSessionBeanRemote);
-                salesManagementModule = new SalesManagementModule();
+                salesManagementModule = new SalesManagementModule(flightSessionBeanRemote);
                 if (currentEmployee.getUserRole()==EmployeeUserRole.FLEETMANAGER||currentEmployee.getUserRole()==EmployeeUserRole.ROUTEPLANNER) {
                     flightPlanningModule.mainMenu();
                 } else if (currentEmployee.getUserRole()==EmployeeUserRole.SCHEDULEMANAGER) {
                      flightOperationModule.mainMenu();
+                } else if (currentEmployee.getUserRole()==EmployeeUserRole.SALESMANAGER) {
+                    salesManagementModule.mainMenu();
                 }
                 
             } catch(InvalidLoginCredentialException ex) {

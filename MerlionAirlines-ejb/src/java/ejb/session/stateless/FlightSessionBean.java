@@ -8,11 +8,15 @@ import entity.Flight;
 import entity.FlightRoute;
 import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
+import entity.SeatInventory;
+import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import util.exception.FlightNotFoundException;
+import util.exception.NoFlightSchedulePlansException;
 
 /**
  *
@@ -50,13 +54,22 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
     }
 
     @Override
-    public void deleteFlight(Long flightId) {
+    public void deleteFlight(String flightNum) throws FlightNotFoundException {
 
-        Flight flight = em.find(Flight.class, flightId);
+        Flight flight = retrieveFlightByFlightNumber(flightNum);
         if (flight.getFlightSchedulePlans().size() == 0) {
             flight.getFlightRoute().getFlights().remove(flight); //remove flight from flightRoute's list
             em.remove(flight);
+            if (flight.getReturnFlight()!=null) { //remove return flight
+                Flight returnFlight = flight.getReturnFlight();
+                em.remove(returnFlight);
+            }
         } else {
+            flight.setIsDisabled(true);
+            if (flight.getReturnFlight()!=null) {
+                Flight returnFlight = flight.getReturnFlight();
+                returnFlight.setIsDisabled(true);
+            }
             List<FlightSchedulePlan> flightSchedulePlans = flight.getFlightSchedulePlans();
             for (FlightSchedulePlan fsp : flightSchedulePlans) {
                 fsp.setIsDisabled(true);
@@ -67,4 +80,39 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
         }
     }
 
+    @Override
+    public Flight retrieveFlightByFlightNumber(String inputFlightNumber) throws FlightNotFoundException {
+        Query query = em.createQuery("SELECT f FROM Flight f WHERE f.flightNumber = :inputFlightNumber").setParameter("inputFlightNumber", inputFlightNumber);
+        Flight output = (Flight) query.getSingleResult();
+        if (output != null) {
+            return output;
+        } else {
+            throw new FlightNotFoundException("Flight with the given flight number does not exist!");
+        }
+
+    }
+    
+    @Override
+    public List<FlightSchedule> retrieveFlightSchedules(String flightNumber) throws NoFlightSchedulePlansException, FlightNotFoundException {
+        Flight flight = retrieveFlightByFlightNumber(flightNumber);
+        if (flight.getFlightSchedulePlans().size()!=0) {
+            List<FlightSchedulePlan> fsp = flight.getFlightSchedulePlans();
+        List<FlightSchedule> ans = new ArrayList<>();
+        for (FlightSchedulePlan flightSchedulePlan: fsp) {
+            for (FlightSchedule fs: flightSchedulePlan.getFlightSchedules()) {
+                //fs.getArrivalDateTime();
+                SeatInventory s = fs.getSeatInventory();
+                FlightSchedule flightSchedule = s.getFlightSchedule();
+                //fs.getDepartureDateTime();
+                //fs.getFlightDurationHours();
+                ans.add(fs);
+            }
+        }
+        return ans;
+        } else {
+            throw new NoFlightSchedulePlansException("This flight has no flight schedule plans!");
+        }
+        
+        
+    }
 }

@@ -4,6 +4,7 @@
  */
 package ejb.session.stateless;
 
+import entity.FlightSchedulePlan;
 import javax.ejb.Local;
 
 /**
@@ -14,5 +15,9 @@ import javax.ejb.Local;
 public interface FlightSchedulePlanSessionBeanLocal {
 
     public void deleteFlightSchedulePlan(Long flightSchedulePlanId);
+
+    public FlightSchedulePlan createFlightSchedulePlan(FlightSchedulePlan fsp);
+
+    public long createReturnFlightSchedulePlan(FlightSchedulePlan main, int layoverHours);
     
 }

@@ -82,8 +82,15 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
         FlightRoute currRoute = em.find(FlightRoute.class, flightRouteId);
         if (currRoute.getFlights().size() == 0) { //not used by any flights
             em.remove(currRoute);
+            if (currRoute.getReturnRoute()!=null) { //remove return flight route as well
+                em.remove(currRoute.getReturnRoute());
+            }
         } else {
             currRoute.setIsDisabled(true);
+            if (currRoute.getReturnRoute()!=null) { 
+                FlightRoute returnRoute =currRoute.getReturnRoute();
+                returnRoute.setIsDisabled(true);
+            }
             List<Flight> flights = currRoute.getFlights();
             for (Flight f : flights) {
                 f.setIsDisabled(true);

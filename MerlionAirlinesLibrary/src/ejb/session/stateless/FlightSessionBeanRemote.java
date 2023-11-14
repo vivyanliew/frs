@@ -6,8 +6,11 @@ package ejb.session.stateless;
 
 import entity.Flight;
 import entity.FlightRoute;
+import entity.FlightSchedule;
 import java.util.List;
 import javax.ejb.Remote;
+import util.exception.FlightNotFoundException;
+import util.exception.NoFlightSchedulePlansException;
 
 /**
  *
@@ -19,6 +22,7 @@ public interface FlightSessionBeanRemote {
 
     public Flight createReturnFlight(Flight mainFlight, Flight returnFlight);
     public List<Flight> retrieveAllFlights();
-    public void deleteFlight(Long flightId);
-    
+    public void deleteFlight(String flightNum) throws FlightNotFoundException;
+    public Flight retrieveFlightByFlightNumber(String inputFlightNumber) throws FlightNotFoundException;
+     public List<FlightSchedule> retrieveFlightSchedules(String flightNumber) throws NoFlightSchedulePlansException, FlightNotFoundException;
 }

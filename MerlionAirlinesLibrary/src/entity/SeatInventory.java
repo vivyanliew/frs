@@ -5,13 +5,16 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 /**
@@ -28,9 +31,19 @@ public class SeatInventory implements Serializable {
     @OneToOne(optional = false)
     @JoinColumn(nullable = false) 
     private FlightSchedule flightSchedule;
+    @OneToMany(fetch = FetchType.EAGER)
     private List<CabinClass> allCabinClasses;
-    private List<HashSet<String>> availableSeats;
+    private List<List<String>> availableSeats;
 
+    public SeatInventory() {
+        this.allCabinClasses = new ArrayList<CabinClass>();
+        this.availableSeats = new ArrayList<List<String>>();
+    }
+    
+    public SeatInventory(FlightSchedule fs) {
+        this();
+        this.flightSchedule = fs;
+    }
     public Long getSeatInventoryId() {
         return seatInventoryId;
     }
@@ -63,5 +76,50 @@ public class SeatInventory implements Serializable {
     public String toString() {
         return "entity.SeatInventory[ id=" + seatInventoryId + " ]";
     }
+
+    /**
+     * @return the flightSchedule
+     */
+    public FlightSchedule getFlightSchedule() {
+        return flightSchedule;
+    }
+
+    /**
+     * @param flightSchedule the flightSchedule to set
+     */
+    public void setFlightSchedule(FlightSchedule flightSchedule) {
+        this.flightSchedule = flightSchedule;
+    }
+
+    /**
+     * @return the allCabinClasses
+     */
+    public List<CabinClass> getAllCabinClasses() {
+        return allCabinClasses;
+    }
+
+    /**
+     * @param allCabinClasses the allCabinClasses to set
+     */
+    public void setAllCabinClasses(List<CabinClass> allCabinClasses) {
+        this.allCabinClasses = allCabinClasses;
+    }
+
+    /**
+     * @return the availableSeats
+     */
+    public List<List<String>> getAvailableSeats() {
+        return availableSeats;
+    }
+
+    /**
+     * @param availableSeats the availableSeats to set
+     */
+    public void setAvailableSeats(List<List<String>> availableSeats) {
+        this.availableSeats = availableSeats;
+    }
+
+    
+    
     
 }

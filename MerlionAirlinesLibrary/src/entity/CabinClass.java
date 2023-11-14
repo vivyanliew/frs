@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -32,46 +33,64 @@ public class CabinClass implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long cabinClassId;
+   @Column(nullable = false)
+    private String cabinClassName;
     @Column(nullable = false)
-//    @NotNull
-//    @Min(0)
-//    @Max(2)
+    @NotNull
+    @Min(0)
+    @Max(2)
     private int numAisles;
     @Column(nullable = false)
-//    @NotNull
-//    @Min(1)
+    @NotNull
+    @Min(1)
     private int numRows;
     @Column(nullable = false)
-//    @NotNull
-//    @Min(1)
+    @NotNull
+    @Min(1)
     private int numSeatsAbreast;
     @Column(nullable = false)
-    //@NotNull
+    @NotNull
     private String actualSeatConfigPerCol;
-//    @Column(nullable = false)
-////    @NotNull
-////    @Min(1)
-////    @Max(1000)
-//    private int maxSeatCapacity;
+    @Column(nullable = false)
+    //@NotNull
+    //@Min(1)
+    //@Max(1000)
+    private int maxSeatCapacity;
     
     @ManyToMany(mappedBy = "cabinClasses")
     private List<AircraftConfig> aircraftConfigs;
-    @OneToMany(mappedBy = "cabinClass")
+    @OneToMany(mappedBy = "cabinClass", fetch = FetchType.EAGER)
     private List<Fare> fares;
     
 
     public CabinClass() {
         this.aircraftConfigs = new ArrayList<>();
+        this.fares = new ArrayList<Fare>();
     }
 
     public CabinClass(int numAisles, int numRows, int numSeatsAbreast, String actualSeatConfigPerCol) {
         this();
-        
+        this.cabinClassName = cabinClassName;
         this.numAisles = numAisles;
         this.numRows = numRows;
         this.numSeatsAbreast = numSeatsAbreast;
-       // this.maxSeatCapacity = this.numRows * this.numSeatsAbreast;
         this.actualSeatConfigPerCol = actualSeatConfigPerCol;
+        this.maxSeatCapacity = this.numRows * this.numSeatsAbreast;
+    }
+
+    public String getCabinClassName() {
+        return cabinClassName;
+    }
+
+    public void setCabinClassName(String cabinClassName) {
+        this.cabinClassName = cabinClassName;
+    }
+
+    public int getMaxSeatCapacity() {
+        return this.numRows*this.numSeatsAbreast;
+    }
+    public void updateMaxSeatCapacity() {
+        this.maxSeatCapacity = this.numRows * this.numSeatsAbreast;
     }
     
     @Override
@@ -164,14 +183,6 @@ public class CabinClass implements Serializable {
 
     public void setFares(List<Fare> fares) {
         this.fares = fares;
-    }
-
-   
-    /**
-     * @return the maxSeatCapacity
-     */
-    public int getMaxSeatCapacity() {
-        return this.numRows * this.numSeatsAbreast;
     }
 
     /**

@@ -30,12 +30,14 @@ public class Flight implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightId;
-    @Column(nullable = false, unique = true)
+     @Column(nullable = false, unique = true)
     @NotNull
     @Pattern(regexp = "ML[A-Za-z0-9]*")
     private String flightNumber;
     @Column
     private boolean isReturn;
+    @Column
+    private boolean isDisabled;
 
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
@@ -50,8 +52,7 @@ public class Flight implements Serializable {
 
     @OneToOne
     private Flight returnFlight;
-    
-    private boolean isDisabled;
+   
     
     public Flight() {
         this.isReturn = false;
@@ -59,6 +60,7 @@ public class Flight implements Serializable {
     }
 
     public Flight(String flightNumber, FlightRoute flightRoute, AircraftConfig aircraftConfig) {
+        this();
         this.flightNumber = flightNumber;
         this.flightRoute = flightRoute;
         this.aircraftConfig = aircraftConfig;

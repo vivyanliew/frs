@@ -129,15 +129,20 @@ public class FlightPlanningModule {
         newAircraftConfig.setAircraftConfigName(sc.nextLine());
         System.out.println("Enter number of cabin classes");
         int numCabinClass = sc.nextInt();
+        sc.nextLine().trim();
         newAircraftConfig.setNumCabinClasses(numCabinClass);
 
         List<CabinClass> allCabins = new ArrayList<>();
         int totalCabinClassSeats = 0;
         while (true) {
-            for (int i = 0; i < numCabinClass; i++) {
+            for (int i = 1; i <= numCabinClass; i++) {
                 //int numAisles, int numRows, int numSeatsAbreast
                 CabinClass currCabinClass = new CabinClass();
-                System.out.println("Enter number of aisles for cabin " + (i + 1));
+                System.out.println("* Cabin Class " + i + " *");
+                System.out.println("Enter cabin class name>");
+                String cabinClassName = sc.nextLine().trim();
+                currCabinClass.setCabinClassName(cabinClassName);
+                System.out.println("Enter number of aisles");
                 int numAisles = sc.nextInt();
                 currCabinClass.setNumAisles(numAisles);
                 System.out.println("Enter number of rows");
@@ -147,14 +152,6 @@ public class FlightPlanningModule {
                 sc.nextLine();
                 System.out.println("Enter actual seat configuration per column");
                 currCabinClass.setActualSeatConfigPerCol(sc.nextLine());
-//            int numColumn = numAisles + 1;
-//            List<Integer> totalSeats = new ArrayList<>();
-//            for (int j = 0; j < numColumn; j++) {
-//                System.out.println("Enter number of seats for column "+ (j+1));
-//                totalSeats.add(sc.nextInt());
-//                //currCabinClass.getActualSeatConfigPerCol().add(sc.nextInt());
-//            }
-//            currCabinClass.setActualSeatConfigPerCol(totalSeats);
 
                 currCabinClass = cabinClassSessionBeanRemote.createCabinClass(currCabinClass);
                 totalCabinClassSeats += currCabinClass.getMaxSeatCapacity();
@@ -190,7 +187,7 @@ public class FlightPlanningModule {
         System.out.println("Number of cabin classes: " + a.getCabinClasses().size());
         for (int i = 0; i < a.getNumCabinClasses(); i++) {
             CabinClass c = a.getCabinClasses().get(i);
-            System.out.println("Cabin class " + (i + 1) + " details:");
+            System.out.println("Cabin class " + c.getCabinClassName() + " details:");
             System.out.println("Number of rows : " + c.getNumRows());
             System.out.println("Number of seats abreast: " + c.getNumSeatsAbreast());
             System.out.println("Actual Seating configuration per column : " + c.getActualSeatConfigPerCol());
@@ -219,10 +216,6 @@ public class FlightPlanningModule {
         String response = "";
         response = sc.nextLine();
         if (response.equals("Y")) {
-//            Airport temp = new Airport();
-//            temp = destinationAirport;
-//            destinationAirport = originAirport;
-//            originAirport = temp;
             FlightRoute fr = new FlightRoute(destinationAirport, originAirport);
 
             fr = flightRouteSessionBeanRemote.createNewFlightRoute(fr);

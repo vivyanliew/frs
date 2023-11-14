@@ -38,6 +38,8 @@ public class FlightSchedule implements Serializable {
     @Column(nullable = false)
     @NotNull
     private int flightDurationHours;
+    @Column(nullable = false)
+    private boolean isDisabled;
     
     @OneToOne(optional = false,mappedBy = "flightSchedule")
     private SeatInventory seatInventory;
@@ -48,8 +50,6 @@ public class FlightSchedule implements Serializable {
     @ManyToMany
     private List<FlightReservation> flightReservations;
     
-    private boolean isDisabled;
-
     public FlightSchedule() {
     }
 
@@ -98,10 +98,9 @@ public class FlightSchedule implements Serializable {
         this.flightScheduleId = flightScheduleId;
     }
 
-    public String getArrivalDateTime() {
+    public LocalDateTime getArrivalDateTime() {
         LocalDateTime arrivalDateTime = this.departureDateTime.plusHours(this.flightDurationHours);
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        return dateFormat.format(arrivalDateTime);
+        return arrivalDateTime;
     }
 
     @Override

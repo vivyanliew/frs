@@ -20,7 +20,7 @@ import javax.ejb.EJB;
  */
 public class Main {
 
-    @EJB(name = "FlightSchedulePlanSessionBeanRemote")
+    @EJB
     private static FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote;
 
     @EJB(name = "FlightSessionBeanRemote")
@@ -43,15 +43,16 @@ public class Main {
 
     @EJB(name = "EmployeeSessionBeanRemote")
     private static EmployeeSessionBeanRemote employeeSessionBeanRemote;
-    
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        MainApp mainApp = new MainApp(employeeSessionBeanRemote, aircraftConfigSessionBeanRemote,flightRouteSessionBeanRemote,cabinClassSessionBeanRemote,aircraftTypeSessionBeanRemote, airportSessionBeanRemote,flightSessionBeanRemote, flightSchedulePlanSessionBeanRemote );
+        MainApp mainApp = new MainApp(employeeSessionBeanRemote, aircraftConfigSessionBeanRemote, 
+                flightRouteSessionBeanRemote, cabinClassSessionBeanRemote, aircraftTypeSessionBeanRemote, 
+                airportSessionBeanRemote, flightSessionBeanRemote, flightSchedulePlanSessionBeanRemote);
         mainApp.runApp();
     }
-    
+
 }

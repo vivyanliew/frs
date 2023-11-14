@@ -29,8 +29,8 @@ public class Fare implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long fareId;
-    @Column(nullable = false)
-    @NotNull
+    @Column //(nullable = false)
+    //@NotNull
     private String fareBasisCode;
     @Column(nullable = false, precision = 12, scale = 2)
     @NotNull
@@ -45,8 +45,7 @@ public class Fare implements Serializable {
     public Fare() {
     }
 
-    public Fare(String fareBasisCode, BigDecimal fareAmount, CabinClass cabinClass) {
-        this.fareBasisCode = fareBasisCode;
+    public Fare(BigDecimal fareAmount, CabinClass cabinClass) {
         this.fareAmount = fareAmount;
         this.cabinClass = cabinClass;
     }
