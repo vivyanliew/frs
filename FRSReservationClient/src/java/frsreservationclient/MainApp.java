@@ -198,7 +198,6 @@ public class MainApp {
 
                 List<Pair<FlightSchedule, FlightSchedule>> threeDaysBeforeActualOutbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(departAirportCode, destinationAirportCode, localDateTimeDepartDate.minusDays(3), cabinClassPref);
 
-
                 System.out.println("                      ============= Available Outbound Flights ============= ");
 
                 System.out.println("                             ============ On Desired Date =========== ");
@@ -209,15 +208,14 @@ public class MainApp {
                 printFlightScheduleWithConnecting(twoDaysBeforeActualOutbound, cabinClassPref, numberOfPassengers);
                 System.out.println("\n                  ============ Departing 3 days before Actual Date ============ ");
                 printFlightScheduleWithConnecting(twoDaysBeforeActualOutbound, cabinClassPref, numberOfPassengers);
-                
+
                 System.out.println("\n                  ============ Departing 1 day after Actual Date ============ ");
                 printFlightScheduleWithConnecting(oneDayAfterActualOutbound, cabinClassPref, numberOfPassengers);
                 System.out.println("\n                  ============ Departing 2 days after Actual Date ============ ");
                 printFlightScheduleWithConnecting(twoDaysBeforeActualOutbound, cabinClassPref, numberOfPassengers);
                 System.out.println("\n                  ============ Departing 3 days after Actual Date ============ ");
                 printFlightScheduleWithConnecting(threeDaysBeforeActualOutbound, cabinClassPref, numberOfPassengers);
-                
-                
+
             } catch (FlightNotFoundException ex) {
                 System.out.println(ex.getMessage());
             } catch (FlightScheduleNotFoundException ex) {
@@ -225,11 +223,89 @@ public class MainApp {
             }
         }
 
-        if (response == 2) {//return trip
+        if (response == 2 && flightTypeResponse == 1) {//return trip - direct
 
-        } else {
+            System.out.println("Enter return date> ");
+            String returnDate = sc.nextLine();
+            //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yy");
+            LocalDate localDate1 = LocalDate.parse(returnDate, formatter);
+            LocalDateTime localDateTimeReturnDate = localDate1.atStartOfDay(); //12am
+            
+            try {
+                
+                List<FlightSchedule> returnFlightSchedules = flightScheduleSessionBeanRemote.getFlightSchedules(destinationAirport, originAirport, localDateTimeReturnDate, cabinClassPref);
+                List<FlightSchedule> returnOneDayBeforeFlightSchedules = flightScheduleSessionBeanRemote.getFlightSchedules(destinationAirport, originAirport, localDateTimeReturnDate.minusDays(1), cabinClassPref);
+                List<FlightSchedule> returnTwoDaysBeforeFlightSchedules = flightScheduleSessionBeanRemote.getFlightSchedules(destinationAirport, originAirport, localDateTimeReturnDate.minusDays(2), cabinClassPref);
+                List<FlightSchedule> returnThreeDaysBeforeFlightSchedules = flightScheduleSessionBeanRemote.getFlightSchedules(destinationAirport, originAirport, localDateTimeReturnDate.minusDays(3), cabinClassPref);
+                List<FlightSchedule> returnOneDayAfterFlightSchedules = flightScheduleSessionBeanRemote.getFlightSchedules(destinationAirport, originAirport, localDateTimeReturnDate.plusDays(1), cabinClassPref);
+                List<FlightSchedule> returnTwoDaysAfterFlightSchedules = flightScheduleSessionBeanRemote.getFlightSchedules(destinationAirport, originAirport, localDateTimeReturnDate.plusDays(2), cabinClassPref);
+                List<FlightSchedule> returnThreeDaysAfterFlightSchedules = flightScheduleSessionBeanRemote.getFlightSchedules(destinationAirport, originAirport, localDateTimeReturnDate.plusDays(3), cabinClassPref);
+                
+                System.out.println("                      ============= Available Direct Inbound Flights ============= ");
+                System.out.println("                             ============ On Actual Date =========== ");
+                printSingleFlightSchedule(returnFlightSchedules, cabinClassPref, numberOfPassengers);
+                System.out.println("\n                  ============ Departing 1 day before Actual Date ============ ");
+                printSingleFlightSchedule(returnOneDayBeforeFlightSchedules, cabinClassPref, numberOfPassengers);
+                System.out.println("\n                  ============ Departing 2 days before Actual Date ============ ");
+                printSingleFlightSchedule(returnTwoDaysBeforeFlightSchedules, cabinClassPref, numberOfPassengers);
+                System.out.println("\n                  ============ Departing 3 days before Actual Date ============ ");
+                printSingleFlightSchedule(returnThreeDaysBeforeFlightSchedules, cabinClassPref, numberOfPassengers);
 
-        }
+                System.out.println("\n                  ============ Departing 1 day after Actual Date ============ ");
+                printSingleFlightSchedule(returnOneDayAfterFlightSchedules, cabinClassPref, numberOfPassengers);
+                System.out.println("\n                  ============ Departing 2 days after Actual Date ============ ");
+                printSingleFlightSchedule(returnTwoDaysAfterFlightSchedules, cabinClassPref, numberOfPassengers);
+                System.out.println("\n                  ============ Departing 3 days after Actual Date ============ ");
+                printSingleFlightSchedule(returnThreeDaysAfterFlightSchedules, cabinClassPref, numberOfPassengers);
+                
+            } catch (FlightNotFoundException ex) {
+                System.out.println(ex.getMessage());
+            } catch (FlightScheduleNotFoundException ex) {
+                System.out.println(ex.getMessage());
+            }
+        } 
+         if (response == 2 && flightTypeResponse == 2){ //return connecting
+            System.out.println("Enter return date> ");
+            String returnDate = sc.nextLine();
+            //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yy");
+            LocalDate localDate1 = LocalDate.parse(returnDate, formatter);
+            LocalDateTime localDateTimeReturnDate = localDate1.atStartOfDay(); //12am
+            
+            String currentDepartAirportCode = destinationAirportCode;
+            String currentDestAirportCode = originAirportCode;
+            try {
+                List<Pair<FlightSchedule, FlightSchedule>> dateOfActualInbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(currentDepartAirportCode, currentDestAirportCode, localDateTimeReturnDate, cabinClassPref);
+                
+                List<Pair<FlightSchedule, FlightSchedule>> oneDayBeforeActualInbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(currentDepartAirportCode, currentDestAirportCode, localDateTimeReturnDate.minusDays(1), cabinClassPref);
+                List<Pair<FlightSchedule, FlightSchedule>> twoDaysBeforeActualInbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(currentDepartAirportCode, currentDestAirportCode, localDateTimeReturnDate.minusDays(2), cabinClassPref);
+                List<Pair<FlightSchedule, FlightSchedule>> threeDaysBeforeActualInbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(currentDepartAirportCode, currentDestAirportCode, localDateTimeReturnDate.minusDays(3), cabinClassPref);
+                
+                List<Pair<FlightSchedule, FlightSchedule>> oneDayAfterActualInbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(currentDepartAirportCode, currentDestAirportCode, localDateTimeReturnDate.plusDays(1), cabinClassPref);
+                List<Pair<FlightSchedule, FlightSchedule>> twoDaysAfterActualInbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(currentDepartAirportCode, currentDestAirportCode, localDateTimeReturnDate.plusDays(2), cabinClassPref);
+                List<Pair<FlightSchedule, FlightSchedule>> threeDaysAfterActualInbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(currentDepartAirportCode, currentDestAirportCode, localDateTimeReturnDate.plusDays(3), cabinClassPref);
+                 System.out.println("                      ============= Available Inbound Flights ============= ");
+
+                System.out.println("                             ============ On Desired Date =========== ");
+                printFlightScheduleWithConnecting(dateOfActualInbound, cabinClassPref, numberOfPassengers);
+                System.out.println("                             ============ Departing One Day before Desired Date =========== ");
+                printFlightScheduleWithConnecting(oneDayBeforeActualInbound, cabinClassPref, numberOfPassengers);
+                System.out.println("                             ============ Departing Two Days before Desired Date =========== ");
+                printFlightScheduleWithConnecting(twoDaysBeforeActualInbound, cabinClassPref, numberOfPassengers);
+                System.out.println("                             ============ Departing Three Days before Desired Date =========== ");
+                printFlightScheduleWithConnecting(threeDaysBeforeActualInbound, cabinClassPref, numberOfPassengers);
+                System.out.println("                             ============ Departing One Day After Desired Date =========== ");
+                printFlightScheduleWithConnecting(oneDayAfterActualInbound, cabinClassPref, numberOfPassengers);
+                System.out.println("                             ============ Departing Two Days After Desired Date =========== ");
+                printFlightScheduleWithConnecting(twoDaysAfterActualInbound, cabinClassPref, numberOfPassengers);
+                System.out.println("                             ============ Departing One Day before Desired Date =========== ");
+                printFlightScheduleWithConnecting(threeDaysAfterActualInbound, cabinClassPref, numberOfPassengers);
+                
+            }catch (FlightNotFoundException ex) {
+                System.out.println(ex.getMessage());
+            } catch (FlightScheduleNotFoundException ex) {
+                System.out.println(ex.getMessage());
+            }
+         }
     }
 
     void registerAsCustomer() throws CustomerAlreadyExistsException {
