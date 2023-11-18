@@ -9,6 +9,7 @@ import entity.Fare;
 import entity.FlightSchedule;
 import java.time.LocalDateTime;
 import java.util.List;
+import javafx.util.Pair;
 import javax.ejb.Local;
 import util.exception.FlightNotFoundException;
 import util.exception.FlightScheduleNotFoundException;
@@ -23,5 +24,5 @@ public interface FlightScheduleSessionBeanLocal {
     public List<FlightSchedule> getFlightSchedules(Airport departure, Airport destination, LocalDateTime date, String cabinPref) throws FlightNotFoundException;
 
     public Fare getSmallestFare(FlightSchedule flightSchedule, String cabinPref) throws FlightScheduleNotFoundException;
-    
+    List<Pair<FlightSchedule, FlightSchedule>> getIndirectFlightSchedules(String departureAirportCode, String destinationAirportCode, LocalDateTime departDate, String cabinPref) throws FlightNotFoundException;
 }

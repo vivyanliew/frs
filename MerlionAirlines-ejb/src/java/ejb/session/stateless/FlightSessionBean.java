@@ -129,13 +129,31 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
     }
 
     @Override
-    public List<Flight> getFlightByOD(Airport originAirport, Airport destinationAirport) throws FlightNotFoundException{
+    public List<Flight> getFlightByOD(Airport originAirport, Airport destinationAirport) throws FlightNotFoundException {
         Query query = em.createQuery("SELECT f FROM Flight f WHERE f.flightRoute.originAirport = :origin AND f.flightRoute.destinationAirport = :destination").setParameter("origin", originAirport);
         query.setParameter("destination", destinationAirport);
-        if (query.getResultList()!=null) {
+        if (query.getResultList() != null) {
             return query.getResultList();
         } else {
             throw new FlightNotFoundException("Flight does not exist with corresponding origin and destination!");
         }
+    }
+
+    @Override
+    public List<Flight[]> retrieveAllIndirectFlightByFlightRoute(String originIATACode, String destinationIATACode) throws FlightNotFoundException {
+        Query query = em.createQuery("SELECT f1, f2\n"
+                + "FROM Flight f1\n"
+                + "JOIN Flight f2 ON f1.flightRoute.destinationAirport.iataCode = f2.flightRoute.originAirport.iataCode\n"
+                + "WHERE f1.isDisabled = false\n"
+                + "      AND f2.isDisabled = false\n"
+                + "      AND f1.flightRoute.originAirport.iataCode = :origin\n"
+                + "      AND f2.flightRoute.destinationAirport.iataCode = :destination");
+        query.setParameter("origin", originIATACode);
+        query.setParameter("destination", destinationIATACode);
+        List<Flight[]> result = query.getResultList();
+        if (result.isEmpty()) {
+            throw new FlightNotFoundException("No indirect flights with flight route from " + originIATACode + " to " + destinationIATACode + " found in system");
+        }
+        return result;
     }
 }

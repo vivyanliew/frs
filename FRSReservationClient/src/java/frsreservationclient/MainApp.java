@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import javafx.util.Pair;
 import util.exception.CustomerAlreadyExistsException;
 import util.exception.FlightNotFoundException;
 import util.exception.FlightScheduleNotFoundException;
@@ -109,7 +110,7 @@ public class MainApp {
         Integer response = 0;
         String originAirportCode = "";
         String destinationAirportCode = "";
-        
+
         System.out.println("***Search for flight");
         System.out.println("1: One-way flight");
         System.out.println("2: Round-trip");
@@ -119,7 +120,7 @@ public class MainApp {
         originAirportCode = sc.nextLine().trim();
         Airport originAirport;
         originAirport = airportSessionBeanRemote.retrieveAirportByIATACode(originAirportCode);
-        
+
         System.out.println("Enter destination airport IATA code> ");
         destinationAirportCode = sc.nextLine().trim();
         Airport destinationAirport = airportSessionBeanRemote.retrieveAirportByIATACode(destinationAirportCode);
@@ -149,7 +150,7 @@ public class MainApp {
         cabinClassPref = sc.nextLine();
 
         if (flightTypeResponse == 1) {
-           
+
             try {
                 List<FlightSchedule> flightSchedulesFound = flightScheduleSessionBeanRemote.getFlightSchedules(originAirport, destinationAirport, localDateTimeDepartDate, cabinClassPref);
                 List<FlightSchedule> flightSchedulesAddOneDay = flightScheduleSessionBeanRemote.getFlightSchedules(originAirport, destinationAirport, localDateTimeDepartDate.plusDays(1), cabinClassPref);
@@ -162,28 +163,69 @@ public class MainApp {
 
                 System.out.println("                      ============= Available Direct Outbound Flights ============= ");
                 System.out.println("                             ============ On Actual Date =========== ");
-                printSingleFlightSchedule(flightSchedulesFound,cabinClassPref, numberOfPassengers);
+                printSingleFlightSchedule(flightSchedulesFound, cabinClassPref, numberOfPassengers);
                 System.out.println("\n                  ============ Departing 1 day before Actual Date ============ ");
-                printSingleFlightSchedule(flightSchedulesMinusOneDay,cabinClassPref,numberOfPassengers);
+                printSingleFlightSchedule(flightSchedulesMinusOneDay, cabinClassPref, numberOfPassengers);
                 System.out.println("\n                  ============ Departing 2 days before Actual Date ============ ");
-                printSingleFlightSchedule(flightSchedulesMinusTwoDays,cabinClassPref,numberOfPassengers);
+                printSingleFlightSchedule(flightSchedulesMinusTwoDays, cabinClassPref, numberOfPassengers);
                 System.out.println("\n                  ============ Departing 3 days before Actual Date ============ ");
-                printSingleFlightSchedule(flightSchedulesMinusThreeDays,cabinClassPref,numberOfPassengers);
-                
+                printSingleFlightSchedule(flightSchedulesMinusThreeDays, cabinClassPref, numberOfPassengers);
+
                 System.out.println("\n                  ============ Departing 1 day after Actual Date ============ ");
-                printSingleFlightSchedule(flightSchedulesAddOneDay,cabinClassPref,numberOfPassengers);
+                printSingleFlightSchedule(flightSchedulesAddOneDay, cabinClassPref, numberOfPassengers);
                 System.out.println("\n                  ============ Departing 2 days after Actual Date ============ ");
-                printSingleFlightSchedule(flightSchedulesAddTwoDays,cabinClassPref,numberOfPassengers);
+                printSingleFlightSchedule(flightSchedulesAddTwoDays, cabinClassPref, numberOfPassengers);
                 System.out.println("\n                  ============ Departing 3 days after Actual Date ============ ");
-                printSingleFlightSchedule(flightSchedulesAddThreeDays,cabinClassPref,numberOfPassengers);
+                printSingleFlightSchedule(flightSchedulesAddThreeDays, cabinClassPref, numberOfPassengers);
             } catch (FlightNotFoundException ex) {
                 System.out.print("Sorry, there are no flights with your desired flight route\n");
             } catch (FlightScheduleNotFoundException ex) {
                 System.out.println(ex.getMessage());
             }
         }
+        if (flightTypeResponse == 2) {
+            String departAirportCode = originAirportCode;
+            String destination = destinationAirportCode;
+            try {
+                List<Pair<FlightSchedule, FlightSchedule>> dateOfActualOutbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(departAirportCode, destinationAirportCode, localDateTimeDepartDate, cabinClassPref);
+                List<Pair<FlightSchedule, FlightSchedule>> oneDayAfterActualOutbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(departAirportCode, destinationAirportCode, localDateTimeDepartDate.plusDays(1), cabinClassPref);
 
-        if (response == 1) {//return trip
+                List<Pair<FlightSchedule, FlightSchedule>> twoDaysAfterActualOutbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(departAirportCode, destinationAirportCode, localDateTimeDepartDate.plusDays(2), cabinClassPref);
+
+                List<Pair<FlightSchedule, FlightSchedule>> threeDaysAfterActualOutbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(departAirportCode, destinationAirportCode, localDateTimeDepartDate.plusDays(3), cabinClassPref);
+                List<Pair<FlightSchedule, FlightSchedule>> oneDayBeforeActualOutbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(departAirportCode, destinationAirportCode, localDateTimeDepartDate.minusDays(1), cabinClassPref);
+                List<Pair<FlightSchedule, FlightSchedule>> twoDaysBeforeActualOutbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(departAirportCode, destinationAirportCode, localDateTimeDepartDate.minusDays(2), cabinClassPref);
+
+                List<Pair<FlightSchedule, FlightSchedule>> threeDaysBeforeActualOutbound = flightScheduleSessionBeanRemote.getIndirectFlightSchedules(departAirportCode, destinationAirportCode, localDateTimeDepartDate.minusDays(3), cabinClassPref);
+
+
+                System.out.println("                      ============= Available Outbound Flights ============= ");
+
+                System.out.println("                             ============ On Desired Date =========== ");
+                printFlightScheduleWithConnecting(dateOfActualOutbound, cabinClassPref, numberOfPassengers);
+                System.out.println("\n                  ============ Departing 1 day before Actual Date ============ ");
+                printFlightScheduleWithConnecting(oneDayBeforeActualOutbound, cabinClassPref, numberOfPassengers);
+                System.out.println("\n                  ============ Departing 2 days before Actual Date ============ ");
+                printFlightScheduleWithConnecting(twoDaysBeforeActualOutbound, cabinClassPref, numberOfPassengers);
+                System.out.println("\n                  ============ Departing 3 days before Actual Date ============ ");
+                printFlightScheduleWithConnecting(twoDaysBeforeActualOutbound, cabinClassPref, numberOfPassengers);
+                
+                System.out.println("\n                  ============ Departing 1 day after Actual Date ============ ");
+                printFlightScheduleWithConnecting(oneDayAfterActualOutbound, cabinClassPref, numberOfPassengers);
+                System.out.println("\n                  ============ Departing 2 days after Actual Date ============ ");
+                printFlightScheduleWithConnecting(twoDaysBeforeActualOutbound, cabinClassPref, numberOfPassengers);
+                System.out.println("\n                  ============ Departing 3 days after Actual Date ============ ");
+                printFlightScheduleWithConnecting(threeDaysBeforeActualOutbound, cabinClassPref, numberOfPassengers);
+                
+                
+            } catch (FlightNotFoundException ex) {
+                System.out.println(ex.getMessage());
+            } catch (FlightScheduleNotFoundException ex) {
+                System.out.println(ex.getMessage());
+            }
+        }
+
+        if (response == 2) {//return trip
 
         } else {
 
@@ -222,46 +264,48 @@ public class MainApp {
         password = sc.nextLine().trim();
         currentCustomer = customerSessionBeanRemote.customerLogin(email, password);
     }
-    
-    void printSingleFlightSchedule(List<FlightSchedule> flightSchedules, String cabinPref, int passengers) throws FlightScheduleNotFoundException {
-        System.out.printf("%15s%20s%30s%30s%40s%20s%20s%20s%25s%25s\n", "Flight ID", 
-                        "Flight Number", 
-                        "Departure Airport", 
-                        "Arrival Airport", 
-                        "Departure Date & Time", 
-                        "Duration (HRS)", 
-                        "Arrival Date & Time", 
-                        "Cabin Type", 
-                        //"Number of Seats Balanced", 
-                        "Price per head", 
-                        "Total Price"); 
-        for (FlightSchedule flightSchedule: flightSchedules) {
-            LocalDateTime arrivalTime = flightSchedule.getArrivalDateTime();
-               
-            System.out.println(flightSchedule.getDepartureDateTime()  +"        " + flightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber());
 
+    void printSingleFlightSchedule(List<FlightSchedule> flightSchedules, String cabinPref, int passengers) throws FlightScheduleNotFoundException {
+        System.out.printf("%15s%20s%30s%30s%40s%20s%20s%20s%25s%25s\n", "Flight ID",
+                "Flight Number",
+                "Departure Airport",
+                "Arrival Airport",
+                "Departure Date & Time",
+                "Duration (HRS)",
+                "Arrival Date & Time",
+                "Cabin Type",
+                //"Number of Seats Balanced", 
+                "Price per head",
+                "Total Price");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+        for (FlightSchedule flightSchedule : flightSchedules) {
+            LocalDateTime arrivalTime = flightSchedule.getArrivalDateTime();
+
+            //System.out.println(flightSchedule.getDepartureDateTime().format(formatter)  + "        " + flightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber());
             SeatInventory seatInventory = flightSchedule.getSeatInventory();
+            //System.out.println(seatInventory.getAllCabinClasses().size());
             for (CabinClass cabinClass : seatInventory.getAllCabinClasses()) {
-                String cabinClassType;
-                if (cabinClass.getCabinClassName().equals(cabinPref) && (cabinClass.getCabinClassName().equals("F") || cabinPref.equals("A"))) {
+                String cabinClassType = "";
+                if (cabinClass.getCabinClassName().equals("F") && (cabinPref.equals("F") || cabinPref.equals("A"))) {
                     cabinClassType = "First Class";
-                } else if (cabinClass.getCabinClassName().equals(cabinPref) && (cabinClass.getCabinClassName().equals("J") || cabinPref.equals("A"))) {
+                } else if (cabinClass.getCabinClassName().equals("J") && (cabinPref.equals("J") || cabinPref.equals("A"))) {
                     cabinClassType = "Business Class";
-                } else  if (cabinClass.getCabinClassName().equals(cabinPref) && (cabinClass.getCabinClassName().equals("W") || cabinPref.equals("A"))) {
+                } else if (cabinClass.getCabinClassName().equals("W") && (cabinPref.equals("W") || cabinPref.equals("A"))) {
                     cabinClassType = "Premium Economy Class";
-                } else if (cabinClass.getCabinClassName().equals(cabinPref) && (cabinClass.getCabinClassName().equals("Y") || cabinPref.equals("A"))) {
+                } else if (cabinClass.getCabinClassName().equals("Y") && (cabinPref.equals("Y") || cabinPref.equals("A"))) {
                     cabinClassType = "Economy Class";
                 } else {
                     continue;
                 }
-                
+                //System.out.println(cabinClassType);
                 System.out.printf("%15s%20s%30s%30s%40s%20s%20s%20s%25s%25s\n", flightSchedule.getFlightScheduleId(),
                         flightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber(),
                         flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOriginAirport().getAirportName(),
                         flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestinationAirport().getAirportName(),
-                        flightSchedule.getDepartureDateTime().toString().substring(0, 19),
+                        flightSchedule.getDepartureDateTime().format(formatter),
                         flightSchedule.getFlightDurationHours(),
-                        arrivalTime.toString().substring(0, 19),
+                        arrivalTime.format(formatter),
                         cabinClassType,
                         //seats.getBalance(),
                         flightScheduleSessionBeanRemote.getSmallestFare(flightSchedule, cabinClass.getCabinClassName()).getFareAmount(),
@@ -270,6 +314,103 @@ public class MainApp {
 
             }
         }
+    }
+
+    void printFlightScheduleWithConnecting(List<Pair<FlightSchedule, FlightSchedule>> flightSchedulePairs, String cabinPref, int passengers) throws FlightScheduleNotFoundException {
+        System.out.printf("%15s%20s%40s%40s%30s%20s%30s%30s%25s%25s%25s%30s%45s%45s%40s%20s%30s%30s%25s%25s\n", "Flight ID",
+                "Flight Number",
+                "Departure Airport",
+                "Arrival Airport",
+                "Departure Date & Time",
+                "Duration (HRS)",
+                "Arrival Date & Time",
+                "Cabin Type",
+                //"Number of Seats Balanced", 
+                "Price per head",
+                "Total Price",
+                "Connecting Flight ID",
+                "Connecting Flight Number",
+                "Connecting Departure Airport",
+                "Arrival Airport",
+                "Departure Date & Time",
+                "Duration (HRS)",
+                "Arrival Date & Time",
+                "Cabin Type",
+                //"Number of Seats Balanced", 
+                "Price per head",
+                "Total Price");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        for (Pair<FlightSchedule, FlightSchedule> pair : flightSchedulePairs) {
+            FlightSchedule flightSchedule1 = pair.getKey();
+            FlightSchedule flightSchedule2 = pair.getValue();
+            LocalDateTime flight1arrival = flightSchedule1.getArrivalDateTime();
+            LocalDateTime flight2arrival = flightSchedule2.getArrivalDateTime();
+            SeatInventory seatInventory1 = flightSchedule1.getSeatInventory();
+            SeatInventory seatInventory2 = flightSchedule2.getSeatInventory();
+            for (CabinClass cabinClass1 : seatInventory1.getAllCabinClasses()) {
+                for (CabinClass cabinClass2 : seatInventory2.getAllCabinClasses()) {
+                    String cabinClassType1 = "";
+                    String cabinClassType2 = "";
+                    if (cabinPref.equals("A")) {
+                        if (cabinClass1.getCabinClassName().equals("F")) {
+                            cabinClassType1 = "First Class";
+                        } else if (cabinClass1.getCabinClassName().equals("J")) {
+                            cabinClassType1 = "Business Class";
+                        } else if (cabinClass1.getCabinClassName().equals("W")) {
+                            cabinClassType1 = "Premium Economy Class";
+                        } else if (cabinClass1.getCabinClassName().equals("Y")) {
+                            cabinClassType1 = "Economy Class";
+                        }
+                        if (cabinClass2.getCabinClassName().equals("F")) {
+                            cabinClassType2 = "First Class";
+                        } else if (cabinClass2.getCabinClassName().equals("J")) {
+                            cabinClassType2 = "Business Class";
+                        } else if (cabinClass2.getCabinClassName().equals("W")) {
+                            cabinClassType2 = "Premium Economy Class";
+                        } else if (cabinClass2.getCabinClassName().equals("Y")) {
+                            cabinClassType2 = "Economy Class";
+                        }
+                    } else if (cabinClass1.getCabinClassName().equals("F") && cabinClass2.getCabinClassName().equals("F") && cabinPref.equals("F")) {
+                        cabinClassType1 = "First Class";
+                        cabinClassType2 = "First Class";
+                    } else if (cabinClass1.getCabinClassName().equals("J") && cabinClass2.getCabinClassName().equals("J") && cabinPref.equals("J")) {
+                        cabinClassType1 = "Business Class";
+                        cabinClassType2 = "Business Class";
+                    } else if (cabinClass1.getCabinClassName().equals("W") && cabinClass2.getCabinClassName().equals("W") && cabinPref.equals("W")) {
+                        cabinClassType1 = "Premium Economy Class";
+                        cabinClassType2 = "Premium Economy Class";
+                    } else if (cabinClass1.getCabinClassName().equals("Y") && cabinClass2.getCabinClassName().equals("Y") && cabinPref.equals("Y")) {
+                        cabinClassType1 = "Economy Class";
+                        cabinClassType2 = "Economy Class";
+                    } else {
+                        continue;
+                    }
+
+                    System.out.printf("%15s%20s%40s%40s%30s%20s%30s%30s%25s%25s%25s%30s%45s%45s%40s%20s%30s%30s%25s%25s\n", flightSchedule1.getFlightScheduleId(),
+                            flightSchedule1.getFlightSchedulePlan().getFlight().getFlightNumber(),
+                            flightSchedule1.getFlightSchedulePlan().getFlight().getFlightRoute().getOriginAirport().getAirportName(),
+                            flightSchedule1.getFlightSchedulePlan().getFlight().getFlightRoute().getDestinationAirport().getAirportName(),
+                            flightSchedule1.getDepartureDateTime().format(formatter),
+                            flightSchedule1.getFlightDurationHours(),
+                            flight1arrival.format(formatter),
+                            cabinClassType1,
+                            flightScheduleSessionBeanRemote.getSmallestFare(flightSchedule1, cabinClass1.getCabinClassName()).getFareAmount(),
+                            flightScheduleSessionBeanRemote.getSmallestFare(flightSchedule1, cabinClass1.getCabinClassName()).getFareAmount().multiply(BigDecimal.valueOf(passengers)),
+                            flightSchedule2.getFlightScheduleId(),
+                            flightSchedule2.getFlightSchedulePlan().getFlight().getFlightNumber(),
+                            flightSchedule2.getFlightSchedulePlan().getFlight().getFlightRoute().getOriginAirport().getAirportName(),
+                            flightSchedule2.getFlightSchedulePlan().getFlight().getFlightRoute().getDestinationAirport().getAirportName(),
+                            flightSchedule2.getDepartureDateTime().format(formatter),
+                            flightSchedule2.getFlightDurationHours(),
+                            flight2arrival.format(formatter),
+                            cabinClassType2,
+                            flightScheduleSessionBeanRemote.getSmallestFare(flightSchedule2, cabinClass2.getCabinClassName()).getFareAmount(),
+                            flightScheduleSessionBeanRemote.getSmallestFare(flightSchedule2, cabinClass2.getCabinClassName()).getFareAmount().multiply(BigDecimal.valueOf(passengers)));
+
+                }
+            }
+        }
+
     }
 
 }

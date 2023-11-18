@@ -29,4 +29,6 @@ public interface FlightSessionBeanRemote {
      public List<FlightSchedule> retrieveFlightSchedules(String flightNumber) throws NoFlightSchedulePlansException, FlightNotFoundException;
      public void updateFlightNumber(String newFlightNumber, Flight flight) throws NonUniqueFlightNumException;
      public List<Flight> getFlightByOD(Airport originAirport, Airport destinationAirport) throws FlightNotFoundException;
+         public List<Flight[]> retrieveAllIndirectFlightByFlightRoute(String originIATACode, String destinationIATACode) throws FlightNotFoundException;
+
 }

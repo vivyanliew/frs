@@ -36,5 +36,7 @@ public interface FlightSessionBeanLocal {
     public void updateFlightNumber(String newFlightNumber, Flight flight) throws NonUniqueFlightNumException;
 
     public List<Flight> getFlightByOD(Airport originAirport, Airport destinationAirport) throws FlightNotFoundException;
+
+    public List<Flight[]> retrieveAllIndirectFlightByFlightRoute(String originIATACode, String destinationIATACode) throws FlightNotFoundException;
     
 }

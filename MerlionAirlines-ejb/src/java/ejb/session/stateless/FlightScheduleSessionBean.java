@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javafx.util.Pair;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -35,22 +36,21 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     @EJB
     private FlightSessionBeanLocal flightSessionBean;
 
-    
     // Add business logic below. (Right-click in editor and choose
     // "Insert Code > Add Business Method")
     @Override
-    public List<FlightSchedule> getFlightSchedules(Airport departure, Airport destination, LocalDateTime date, String cabinPref) throws FlightNotFoundException{
+    public List<FlightSchedule> getFlightSchedules(Airport departure, Airport destination, LocalDateTime date, String cabinPref) throws FlightNotFoundException {
         List<FlightSchedule> schedule = new ArrayList<>();
         List<Flight> flightsFound = flightSessionBean.getFlightByOD(departure, destination);
-        for (Flight flight: flightsFound) {
+        for (Flight flight : flightsFound) {
             if (flight.isIsDisabled()) {
                 continue;
             }
-            for (FlightSchedulePlan fsp: flight.getFlightSchedulePlans()) {
+            for (FlightSchedulePlan fsp : flight.getFlightSchedulePlans()) {
                 if (fsp.isIsDisabled()) {
                     continue;
                 }
-                for (FlightSchedule fs: fsp.getFlightSchedules()) {
+                for (FlightSchedule fs : fsp.getFlightSchedules()) {
                     boolean toAdd = false;
                     if (cabinPref.equals("A")) {
                         toAdd = true;
@@ -62,40 +62,43 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
                             }
                         }
                     }
+                    toAdd = false;
+
                     LocalDateTime flightScheduleDepartDate = fs.getDepartureDateTime();
                     LocalDateTime nextDay = date.plusDays(1);
                     if (flightScheduleDepartDate.isEqual(date)) {
                         toAdd = true;
                     }
-                    if (flightScheduleDepartDate.isAfter(date) && flightScheduleDepartDate.isBefore(nextDay)){
+                    if (flightScheduleDepartDate.isAfter(date) && flightScheduleDepartDate.isBefore(nextDay)) {
                         toAdd = true;
                     }
                     if (toAdd) {
                         schedule.add(fs);
                     }
-                    
+
                 }
             }
         }
         Collections.sort(schedule, new FlightSchedule.FlightScheduleComparator());
         return schedule;
     }
+
     public FlightSchedule retrieveFlightScheduleById(Long id) throws FlightScheduleNotFoundException {
-        FlightSchedule fs = em.find(FlightSchedule.class,id);
-        if (fs!=null) {
+        FlightSchedule fs = em.find(FlightSchedule.class, id);
+        if (fs != null) {
             return fs;
         } else {
             throw new FlightScheduleNotFoundException("Flight Schedule " + id + " not found!");
         }
     }
-    
+
     @Override
     public Fare getSmallestFare(FlightSchedule flightSchedule, String cabinPref) throws FlightScheduleNotFoundException {
         FlightSchedule flightScheduleFound = retrieveFlightScheduleById(flightSchedule.getFlightScheduleId());
         List<Fare> fares = flightScheduleFound.getFlightSchedulePlan().getFares();
         List<Fare> ccFares = new ArrayList<>();
-        
-        for (Fare fare: fares) {
+
+        for (Fare fare : fares) {
             if (fare.getCabinClass().getCabinClassName().equals(cabinPref)) {
                 ccFares.add(fare);
             }
@@ -105,12 +108,72 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         }
         Fare smallest = ccFares.get(0);
         for (Fare fare : ccFares) {
-            if(fare.getFareAmount().compareTo(smallest.getFareAmount()) < 0) {
+            if (fare.getFareAmount().compareTo(smallest.getFareAmount()) < 0) {
                 smallest = fare;
             }
         }
         return smallest;
     }
 
-    
+    @Override
+    public List<Pair<FlightSchedule, FlightSchedule>> getIndirectFlightSchedules(String departureAirportCode, String destinationAirportCode, LocalDateTime departDate, String cabinPref) throws FlightNotFoundException {
+        List<Pair<FlightSchedule, FlightSchedule>> schedule = new ArrayList<>();
+        List<Flight[]> flight = flightSessionBean.retrieveAllIndirectFlightByFlightRoute(departureAirportCode, destinationAirportCode);
+        for (Object[] pair : flight) {
+            Flight firstFlight = (Flight) pair[0];
+            Flight secondFlight = (Flight) pair[1];
+            for (FlightSchedulePlan flightSchedulePlan : firstFlight.getFlightSchedulePlans()) {
+                if (flightSchedulePlan.isIsDisabled()) {
+                    continue;
+                }
+                for (FlightSchedule flightSchedule : flightSchedulePlan.getFlightSchedules()) {
+                    for (FlightSchedulePlan fsp : secondFlight.getFlightSchedulePlans()) {
+                        if (fsp.isIsDisabled()) {
+                            continue;
+                        }
+                        for (FlightSchedule flightSchedule2 : fsp.getFlightSchedules()) {
+                            boolean toAdd = false;
+                            if (cabinPref.equals("A")) { //check cabin preference
+                                toAdd = true;
+                            } else {
+                                SeatInventory seatInventory1 = flightSchedule.getSeatInventory();
+                                SeatInventory seatInventory2 = flightSchedule2.getSeatInventory();
+                                for (CabinClass cabinClass : seatInventory1.getAllCabinClasses()) {
+                                    for (CabinClass cabin : seatInventory2.getAllCabinClasses()) {
+                                        if (cabinClass.getCabinClassName().equals(cabinPref) && cabin.getCabinClassName().equals(cabinPref)) {
+                                            toAdd = true;
+                                        }
+                                    }
+
+                                }
+                            }
+                            toAdd = false;
+                            //check if flight leaves on departdate
+                            LocalDateTime firstFlightDepartDate = flightSchedule.getDepartureDateTime();
+                            LocalDateTime nextDay = departDate.plusDays(1);
+                            if (firstFlightDepartDate.isEqual(departDate)) {
+                                toAdd = true;
+                            }
+                            if (firstFlightDepartDate.isAfter(departDate) && firstFlightDepartDate.isBefore(nextDay)) {
+                                toAdd = true;
+                            }
+                            
+                            //second flight leaves after first flight
+                            toAdd = false;
+                            LocalDateTime secondFlightDepartDate = flightSchedule2.getDepartureDateTime();
+                            if (secondFlightDepartDate.isAfter(flightSchedule.getArrivalDateTime()) || secondFlightDepartDate.isEqual(flightSchedule.getArrivalDateTime())) {
+                                toAdd = true;
+                            }
+                            if (toAdd) {
+                                schedule.add(new Pair(flightSchedule,flightSchedule2));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Collections.sort(schedule, new FlightSchedule.IndirectFlightScheduleComparator());
+        return schedule;
+    }
+
 }
