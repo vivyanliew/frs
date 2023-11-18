@@ -141,13 +141,13 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
 
     @Override
     public List<Flight[]> retrieveAllIndirectFlightByFlightRoute(String originIATACode, String destinationIATACode) throws FlightNotFoundException {
-        Query query = em.createQuery("SELECT f1, f2\n"
-                + "FROM Flight f1\n"
-                + "JOIN Flight f2 ON f1.flightRoute.destinationAirport.iataCode = f2.flightRoute.originAirport.iataCode\n"
-                + "WHERE f1.isDisabled = false\n"
-                + "      AND f2.isDisabled = false\n"
-                + "      AND f1.flightRoute.originAirport.iataCode = :origin\n"
-                + "      AND f2.flightRoute.destinationAirport.iataCode = :destination");
+        Query query = em.createQuery("SELECT f1, f2 "
+                + "FROM Flight f1 "
+                + "JOIN Flight f2 ON f1.flightRoute.destinationAirport.iataCode = f2.flightRoute.originAirport.iataCode "
+                + "WHERE f1.isDisabled = false "
+                + "AND f2.isDisabled = false "
+                + "AND f1.flightRoute.originAirport.iataCode = :origin "
+                + "AND f2.flightRoute.destinationAirport.iataCode = :destination");
         query.setParameter("origin", originIATACode);
         query.setParameter("destination", destinationIATACode);
         List<Flight[]> result = query.getResultList();

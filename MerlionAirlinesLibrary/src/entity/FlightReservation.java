@@ -5,7 +5,10 @@
 package entity;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -33,10 +36,26 @@ public class FlightReservation implements Serializable {
     @ManyToMany
     private List<FlightSchedule> flightSchedules;
     
+    @OneToMany
     private List<Passenger> passengers;
+    @ManyToMany
+    private List<CabinClass> cabinClasses;
+    @Column(nullable = false)
+    private String ccNum;
+    @Column(nullable = false)
+    private String ccExpiryDate;
+    @Column(nullable = false)
+    private int cvv;
     
-
+    private List<BigDecimal> fareAmount;
+    private List<String> fareBasisCode;
+    
     public FlightReservation() {
+        this.fareAmount = new ArrayList<>();
+        this.fareBasisCode = new ArrayList<>();
+        this.passengers = new ArrayList<>();
+        this.flightSchedules = new ArrayList<>();
+        this.cabinClasses = new ArrayList<>();
     }
 
     public List<FlightSchedule> getFlightSchedules() {
@@ -87,6 +106,104 @@ public class FlightReservation implements Serializable {
     @Override
     public String toString() {
         return "entity.FlightReservation[ id=" + flightReservationId + " ]";
+    }
+
+    /**
+     * @return the passengers
+     */
+    public List<Passenger> getPassengers() {
+        return passengers;
+    }
+
+    /**
+     * @param passengers the passengers to set
+     */
+    public void setPassengers(List<Passenger> passengers) {
+        this.passengers = passengers;
+    }
+
+    /**
+     * @return the cabinClasses
+     */
+    public List<CabinClass> getCabinClasses() {
+        return cabinClasses;
+    }
+
+    /**
+     * @param cabinClasses the cabinClasses to set
+     */
+    public void setCabinClasses(List<CabinClass> cabinClasses) {
+        this.cabinClasses = cabinClasses;
+    }
+
+    /**
+     * @return the ccNum
+     */
+    public String getCcNum() {
+        return ccNum;
+    }
+
+    /**
+     * @param ccNum the ccNum to set
+     */
+    public void setCcNum(String ccNum) {
+        this.ccNum = ccNum;
+    }
+
+    /**
+     * @return the ccExpiryDate
+     */
+    public String getCcExpiryDate() {
+        return ccExpiryDate;
+    }
+
+    /**
+     * @param ccExpiryDate the ccExpiryDate to set
+     */
+    public void setCcExpiryDate(String ccExpiryDate) {
+        this.ccExpiryDate = ccExpiryDate;
+    }
+
+    /**
+     * @return the cvv
+     */
+    public int getCvv() {
+        return cvv;
+    }
+
+    /**
+     * @param cvv the cvv to set
+     */
+    public void setCvv(int cvv) {
+        this.cvv = cvv;
+    }
+
+    /**
+     * @return the fareAmount
+     */
+    public List<BigDecimal> getFareAmount() {
+        return fareAmount;
+    }
+
+    /**
+     * @param fareAmount the fareAmount to set
+     */
+    public void setFareAmount(List<BigDecimal> fareAmount) {
+        this.fareAmount = fareAmount;
+    }
+
+    /**
+     * @return the fareBasisCode
+     */
+    public List<String> getFareBasisCode() {
+        return fareBasisCode;
+    }
+
+    /**
+     * @param fareBasisCode the fareBasisCode to set
+     */
+    public void setFareBasisCode(List<String> fareBasisCode) {
+        this.fareBasisCode = fareBasisCode;
     }
     
 }

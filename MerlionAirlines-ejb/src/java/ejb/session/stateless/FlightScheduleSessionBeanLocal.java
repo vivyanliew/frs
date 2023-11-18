@@ -5,6 +5,7 @@
 package ejb.session.stateless;
 
 import entity.Airport;
+import entity.CabinClass;
 import entity.Fare;
 import entity.FlightSchedule;
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import javafx.util.Pair;
 import javax.ejb.Local;
 import util.exception.FlightNotFoundException;
 import util.exception.FlightScheduleNotFoundException;
+import util.exception.SeatInventoryNotFoundException;
 
 /**
  *
@@ -25,4 +27,8 @@ public interface FlightScheduleSessionBeanLocal {
 
     public Fare getSmallestFare(FlightSchedule flightSchedule, String cabinPref) throws FlightScheduleNotFoundException;
     List<Pair<FlightSchedule, FlightSchedule>> getIndirectFlightSchedules(String departureAirportCode, String destinationAirportCode, LocalDateTime departDate, String cabinPref) throws FlightNotFoundException;
+
+    public CabinClass getCorrectCabinClass(FlightSchedule flightSchedule, String cabinClassName) throws FlightScheduleNotFoundException, SeatInventoryNotFoundException;
+
+    public FlightSchedule retrieveFlightScheduleById(Long id) throws FlightScheduleNotFoundException;
 }

@@ -152,7 +152,7 @@ public class FlightOperationModule {
         int count = 1;
         for (Flight f : allFlights) {
             if (!f.isIsReturn()) {
-                if (!f.isIsDisabled()) {
+                if (!f.isDisabled()) {
                     System.out.println(count + ". " + f.getFlightNumber());
                 } else {
                     System.out.println(count + ". " + f.getFlightNumber() + " (disabled)");
@@ -210,7 +210,7 @@ public class FlightOperationModule {
         }
         System.out.println("Origin Airport : " + flight.getFlightRoute().getOriginAirport().getAirportName());
         System.out.println("Destination Airport : " + flight.getFlightRoute().getDestinationAirport().getAirportName());
-        System.out.println("Disabled : " + flight.isIsDisabled());
+        System.out.println("Disabled : " + flight.isDisabled());
         System.out.println("Available Cabin Classes: ");
         for (CabinClass cc : flight.getAircraftConfig().getCabinClasses()) {
             System.out.println(cc.getCabinClassName());
@@ -471,14 +471,22 @@ public class FlightOperationModule {
     }
 
     SeatInventory createSeatInventory(Flight f, FlightSchedule fs) {
-        SeatInventory seatInventory = new SeatInventory(fs);
+        SeatInventory seatInventory = new SeatInventory();
+        fs.setSeatInventory(seatInventory);
         seatInventory.getAllCabinClasses().addAll(f.getAircraftConfig().getCabinClasses());
         int numCabinClasses = f.getAircraftConfig().getNumCabinClasses();
 
+        seatInventory.setAvailableSeats(new ArrayList<List<String>>(numCabinClasses));
+         seatInventory.setBalanceSeats(new ArrayList<List<String>>(numCabinClasses));
+        seatInventory.setReservedSeats(new ArrayList<List<String>>(numCabinClasses));
+        
         for (int i = 0; i < numCabinClasses; i++) {
             CabinClass c = seatInventory.getAllCabinClasses().get(i);
             int numRows = c.getNumRows();
             int numSeatsAbreast = c.getNumSeatsAbreast();
+            seatInventory.getAvailableSeats().add(new ArrayList<String>(numRows * numSeatsAbreast));
+            seatInventory.getReservedSeats().add(new ArrayList<String>(numRows * numSeatsAbreast));
+            seatInventory.getBalanceSeats().add(new ArrayList<String>(numRows * numSeatsAbreast));
             for (int j = 1; j <= numRows; j++) {
                 for (int k = 0; k < numSeatsAbreast; k++) {
                     char alphabet = (char) ('A' + k);

@@ -160,7 +160,7 @@ public class Flight implements Serializable {
     /**
      * @return the isDisabled
      */
-    public boolean isIsDisabled() {
+    public boolean isDisabled() {
         return isDisabled;
     }
 

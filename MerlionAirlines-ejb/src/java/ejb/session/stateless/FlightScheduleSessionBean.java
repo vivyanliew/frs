@@ -22,6 +22,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import util.exception.FlightNotFoundException;
 import util.exception.FlightScheduleNotFoundException;
+import util.exception.SeatInventoryNotFoundException;
 
 /**
  *
@@ -43,7 +44,7 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         List<FlightSchedule> schedule = new ArrayList<>();
         List<Flight> flightsFound = flightSessionBean.getFlightByOD(departure, destination);
         for (Flight flight : flightsFound) {
-            if (flight.isIsDisabled()) {
+            if (flight.isDisabled()) {
                 continue;
             }
             for (FlightSchedulePlan fsp : flight.getFlightSchedulePlans()) {
@@ -83,6 +84,7 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         return schedule;
     }
 
+    @Override
     public FlightSchedule retrieveFlightScheduleById(Long id) throws FlightScheduleNotFoundException {
         FlightSchedule fs = em.find(FlightSchedule.class, id);
         if (fs != null) {
@@ -174,6 +176,18 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         }
         Collections.sort(schedule, new FlightSchedule.IndirectFlightScheduleComparator());
         return schedule;
+    }
+    
+    @Override
+    public CabinClass getCorrectCabinClass(FlightSchedule flightSchedule, String cabinClassName) throws FlightScheduleNotFoundException, SeatInventoryNotFoundException {
+        FlightSchedule flightScheduleFound = retrieveFlightScheduleById(flightSchedule.getFlightScheduleId());
+        SeatInventory seatInventory = flightScheduleFound.getSeatInventory();
+        for (CabinClass cabinClass: seatInventory.getAllCabinClasses()) {
+            if (cabinClass.getCabinClassName().equals(cabinClassName)) {
+                return cabinClass;
+            }
+        }
+        throw new SeatInventoryNotFoundException("No such seat inventory");
     }
 
 }

@@ -34,10 +34,14 @@ public class SeatInventory implements Serializable {
     @OneToMany(fetch = FetchType.EAGER)
     private List<CabinClass> allCabinClasses;
     private List<List<String>> availableSeats;
+    private List<List<String>> reservedSeats;
+    private List<List<String>> balanceSeats;
 
     public SeatInventory() {
         this.allCabinClasses = new ArrayList<CabinClass>();
         this.availableSeats = new ArrayList<List<String>>();
+        this.reservedSeats = new ArrayList<List<String>>();
+        this.balanceSeats = new ArrayList<List<String>>();
     }
     
     public SeatInventory(FlightSchedule fs) {
@@ -117,6 +121,34 @@ public class SeatInventory implements Serializable {
      */
     public void setAvailableSeats(List<List<String>> availableSeats) {
         this.availableSeats = availableSeats;
+    }
+
+    /**
+     * @return the reservedSeats
+     */
+    public List<List<String>> getReservedSeats() {
+        return reservedSeats;
+    }
+
+    /**
+     * @param reservedSeats the reservedSeats to set
+     */
+    public void setReservedSeats(List<List<String>> reservedSeats) {
+        this.reservedSeats = reservedSeats;
+    }
+
+    /**
+     * @return the balanceSeats
+     */
+    public List<List<String>> getBalanceSeats() {
+        return balanceSeats;
+    }
+
+    /**
+     * @param balanceSeats the balanceSeats to set
+     */
+    public void setBalanceSeats(List<List<String>> balanceSeats) {
+        this.balanceSeats = balanceSeats;
     }
 
     
