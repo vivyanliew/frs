@@ -112,7 +112,5 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         return smallest;
     }
 
-    public void persist(Object object) {
-        em.persist(object);
-    }
+    
 }

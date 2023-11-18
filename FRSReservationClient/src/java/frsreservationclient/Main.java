@@ -17,16 +17,16 @@ import javax.ejb.EJB;
  */
 public class Main {
 
-    @EJB(name = "FlightScheduleSessionBeanRemote")
+    @EJB
     private static FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote;
 
-    @EJB(name = "FlightSchedulePlanSessionBeanRemote")
+    @EJB
     private static FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote;
 
-    @EJB(name = "FlightSessionBeanRemote")
+    @EJB
     private static FlightSessionBeanRemote flightSessionBeanRemote;
 
-    @EJB(name = "AirportSessionBeanRemote")
+    @EJB
     private static AirportSessionBeanRemote airportSessionBeanRemote;
 
     @EJB
