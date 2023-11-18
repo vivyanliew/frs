@@ -87,7 +87,7 @@ public class CabinClass implements Serializable {
     }
 
     public int getMaxSeatCapacity() {
-        return this.numRows*this.numSeatsAbreast;
+        return maxSeatCapacity;
     }
     public void updateMaxSeatCapacity() {
         this.maxSeatCapacity = this.numRows * this.numSeatsAbreast;

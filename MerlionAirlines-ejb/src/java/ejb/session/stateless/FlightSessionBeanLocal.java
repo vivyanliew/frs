@@ -4,6 +4,7 @@
  */
 package ejb.session.stateless;
 
+import entity.Airport;
 import entity.Flight;
 import entity.FlightRoute;
 import entity.FlightSchedule;
@@ -11,6 +12,7 @@ import java.util.List;
 import javax.ejb.Local;
 import util.exception.FlightNotFoundException;
 import util.exception.NoFlightSchedulePlansException;
+import util.exception.NonUniqueFlightNumException;
 
 /**
  *
@@ -30,5 +32,9 @@ public interface FlightSessionBeanLocal {
     public Flight retrieveFlightByFlightNumber(String inputFlightNumber) throws FlightNotFoundException;
 
     public List<FlightSchedule> retrieveFlightSchedules(String flightNumber) throws NoFlightSchedulePlansException, FlightNotFoundException;
+
+    public void updateFlightNumber(String newFlightNumber, Flight flight) throws NonUniqueFlightNumException;
+
+    public List<Flight> getFlightByOD(Airport originAirport, Airport destinationAirport) throws FlightNotFoundException;
     
 }

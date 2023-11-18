@@ -32,6 +32,9 @@ public class FlightReservation implements Serializable {
     private Customer customer;
     @ManyToMany
     private List<FlightSchedule> flightSchedules;
+    
+    private List<Passenger> passengers;
+    
 
     public FlightReservation() {
     }

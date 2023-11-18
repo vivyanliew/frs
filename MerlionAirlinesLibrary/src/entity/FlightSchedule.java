@@ -8,8 +8,10 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.Comparator;
+//import java.util.Date;
 import java.util.List;
+import javafx.util.Pair;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -74,9 +76,8 @@ public class FlightSchedule implements Serializable {
     public void setFlightReservations(List<FlightReservation> flightReservations) {
         this.flightReservations = flightReservations;
     }
-    public String getDepartureDateTime() {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        return dateFormat.format(this.departureDateTime);
+    public LocalDateTime getDepartureDateTime() {
+        return this.departureDateTime;
     }
 
     public void setDepartureDateTime(LocalDateTime departureDateTime) {
@@ -160,6 +161,31 @@ public class FlightSchedule implements Serializable {
     /**
      * @return the flightSchedulePlan
      */
+    public static class FlightScheduleComparator implements Comparator<FlightSchedule> {
+        @Override
+        public int compare(FlightSchedule fs1, FlightSchedule fs2) {
+            if (fs1.getDepartureDateTime().compareTo(fs2.getDepartureDateTime())>0) {
+                return 1;
+            } else if (fs1.getDepartureDateTime().compareTo(fs2.getDepartureDateTime()) < 0) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+    }
+    
+    public static class IndirectFlightScheduleComparator implements Comparator<Pair<FlightSchedule,FlightSchedule>> {
+        @Override
+        public int compare(Pair<FlightSchedule,FlightSchedule> f1, Pair<FlightSchedule,FlightSchedule> f2) {
+            if (f1.getKey().getDepartureDateTime().compareTo(f2.getKey().getDepartureDateTime()) > 0) {
+                return 1;
+            }else if (f1.getKey().getDepartureDateTime().compareTo(f2.getKey().getDepartureDateTime()) < 0) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+    }
     
 
 }

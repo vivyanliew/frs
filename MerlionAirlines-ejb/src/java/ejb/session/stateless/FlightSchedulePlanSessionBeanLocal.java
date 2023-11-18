@@ -4,8 +4,13 @@
  */
 package ejb.session.stateless;
 
+import entity.Flight;
+import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
+import java.time.LocalDateTime;
+import java.util.List;
 import javax.ejb.Local;
+import util.exception.ClashingScheduleException;
 
 /**
  *
@@ -18,6 +23,14 @@ public interface FlightSchedulePlanSessionBeanLocal {
 
     public FlightSchedulePlan createFlightSchedulePlan(FlightSchedulePlan fsp);
 
-    public long createReturnFlightSchedulePlan(FlightSchedulePlan main, int layoverHours);
+    public FlightSchedulePlan createReturnFlightSchedulePlan(FlightSchedulePlan main, int layoverHours);
+
+    public List<FlightSchedulePlan> viewAllFlightSchedulePlans();
+    public void checkForClashes(FlightSchedulePlan newPlan) throws ClashingScheduleException;
+
+    public void updateFares(FlightSchedulePlan flightSchedulePlan);
+    public List<FlightSchedule> retrieveSchedulesForFlight(Flight flight);
+
+    public List<FlightSchedule> retrieveSchedulesForFlight(Flight flight, LocalDateTime departDate);
     
 }

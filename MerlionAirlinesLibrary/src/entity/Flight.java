@@ -30,7 +30,7 @@ public class Flight implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightId;
-     @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     @NotNull
     @Pattern(regexp = "ML[A-Za-z0-9]*")
     private String flightNumber;

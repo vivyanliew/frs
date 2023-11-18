@@ -152,6 +152,7 @@ public class FlightPlanningModule {
                 sc.nextLine();
                 System.out.println("Enter actual seat configuration per column");
                 currCabinClass.setActualSeatConfigPerCol(sc.nextLine());
+                currCabinClass.updateMaxSeatCapacity();
 
                 currCabinClass = cabinClassSessionBeanRemote.createCabinClass(currCabinClass);
                 totalCabinClassSeats += currCabinClass.getMaxSeatCapacity();

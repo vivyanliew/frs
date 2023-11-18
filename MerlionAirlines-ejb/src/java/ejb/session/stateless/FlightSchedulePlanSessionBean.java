@@ -19,6 +19,8 @@ import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import util.exception.ClashingScheduleException;
 
 /**
  *
@@ -29,15 +31,16 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
 
     @PersistenceContext(unitName = "MerlionAirlines-ejbPU")
     private EntityManager em;
+
     // Add business logic below. (Right-click in editor and choose
     // "Insert Code > Add Business Method")
     @Override
     public void deleteFlightSchedulePlan(Long flightSchedulePlanId) {
-        FlightSchedulePlan flightSchedulePlan = em.find(FlightSchedulePlan.class,flightSchedulePlanId);
+        FlightSchedulePlan flightSchedulePlan = em.find(FlightSchedulePlan.class, flightSchedulePlanId);
         List<FlightSchedule> flightSchedules = flightSchedulePlan.getFlightSchedules();
-        
+
         for (FlightSchedule fs : flightSchedules) {
-            if (fs.getFlightReservations().size()==0) {
+            if (fs.getFlightReservations().size() == 0) {
                 em.remove(fs);
                 //flightSchedulePlan.getFlightSchedules().remove(fs);
                 em.remove(fs.getSeatInventory());
@@ -51,12 +54,13 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
             em.remove(flightSchedulePlan);
             Flight f = flightSchedulePlan.getFlight();
             f.getFlightSchedulePlans().remove(flightSchedulePlan);
-            if (flightSchedulePlan.getReturnFlightSchedulePlan()!=null) {
+            if (flightSchedulePlan.getReturnFlightSchedulePlan() != null) {
                 em.remove(flightSchedulePlan.getReturnFlightSchedulePlan());
             }
         }
-        
+
     }
+
     @Override
     public FlightSchedulePlan createFlightSchedulePlan(FlightSchedulePlan fsp) {
         em.persist(fsp);
@@ -76,9 +80,9 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         em.flush();
         return fsp;
     }
-    
+
     @Override
-    public long createReturnFlightSchedulePlan(FlightSchedulePlan main, int layoverHours) {
+    public FlightSchedulePlan createReturnFlightSchedulePlan(FlightSchedulePlan main, int layoverHours) {
         FlightSchedulePlan mainFSP = em.find(FlightSchedulePlan.class, main.getFlightSchedulePlanId());
         mainFSP.setLayoverHours(layoverHours);
         FlightSchedulePlan returnFSP = new FlightSchedulePlan();
@@ -88,63 +92,136 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         returnFSP.setIsReturn(true);
         mainFSP.setReturnFlightSchedulePlan(returnFSP);
         em.flush();
-        return returnFSP.getFlightSchedulePlanId();
+        return returnFSP;
     }
-     private static LocalDateTime parseDateTime(String dateTimeInput) {
+
+    private static LocalDateTime parseDateTime(String dateTimeInput) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yy, h:mm a");
         return LocalDateTime.parse(dateTimeInput, formatter);
     }
-     
+
     private void createReturnFlightSchedules(FlightSchedulePlan mainFSP, FlightSchedulePlan returnFSP) {
         mainFSP = em.find(FlightSchedulePlan.class, mainFSP.getFlightSchedulePlanId());
         int numFS = mainFSP.getFlightSchedules().size();
         for (int i = 0; i < numFS; i++) {
             LocalDateTime returnDepart = mainFSP.getFlightSchedules().get(i).getArrivalDateTime().plusHours(mainFSP.getLayoverHours());
             int returnDuration = mainFSP.getFlightSchedules().get(i).getFlightDurationHours();
-            
-            FlightSchedule returnFS = new FlightSchedule(returnDepart, returnDuration);     
+
+            FlightSchedule returnFS = new FlightSchedule(returnDepart, returnDuration);
             em.persist(returnFS);
-            
+
             returnFSP.getFlightSchedules().add(returnFS);
             returnFS.setFlightSchedulePlan(returnFSP);
 
             returnFSP.setFares(mainFSP.getFares());
             returnFSP.setFlight(mainFSP.getFlight().getReturnFlight());
-            
+
             em.flush();
 
-            returnFS.setSeatInventory(createSeatInventory(returnFSP.getFlight(), returnFS));  
+            returnFS.setSeatInventory(createSeatInventory(returnFSP.getFlight(), returnFS));
         }
     }
-    
+
     private SeatInventory createSeatInventory(Flight f, FlightSchedule fs) {
         SeatInventory seatInventory = new SeatInventory(fs);
         em.persist(seatInventory);
         //Flight fl = em.find(Flight.class, f.getFlightId());
         seatInventory.getAllCabinClasses().addAll(f.getAircraftConfig().getCabinClasses());
         int numCabinClasses = f.getAircraftConfig().getNumCabinClasses();
-        
+
         //ArrayList<List<String>> toSet = ;
         seatInventory.setAvailableSeats(new ArrayList<List<String>>(numCabinClasses));
-   
+
         for (int i = 0; i < numCabinClasses; i++) {
-            CabinClass c  = seatInventory.getAllCabinClasses().get(i);
+            CabinClass c = seatInventory.getAllCabinClasses().get(i);
             int numRows = c.getNumRows();
             int numSeatsAbreast = c.getNumSeatsAbreast();
-            seatInventory.getAvailableSeats().add(new ArrayList<String>(numRows*numSeatsAbreast));
-            for(int j = 1; j <= numRows; j++) {
+            seatInventory.getAvailableSeats().add(new ArrayList<String>(numRows * numSeatsAbreast));
+            for (int j = 1; j <= numRows; j++) {
                 for (int k = 0; k < numSeatsAbreast; k++) {
                     char alphabet = (char) ('A' + k);
-                    String seat =  j + String.valueOf(alphabet);
-                    
+                    String seat = j + String.valueOf(alphabet);
+
                     seatInventory.getAvailableSeats().get(i).add(seat);
                 }
             }
-            
+
             Collections.sort(seatInventory.getAvailableSeats().get(i));
         }
         return seatInventory;
     }
-    
-    
+
+    @Override
+    public List<FlightSchedulePlan> viewAllFlightSchedulePlans() {
+        String jpql = "SELECT fsp FROM FlightSchedulePlan fsp "
+                + "JOIN fsp.flight f "
+                + "LEFT JOIN fsp.returnFlightSchedulePlan returnFSP "
+                + "LEFT JOIN fsp.flightSchedules fs "
+                + "ORDER BY f.flightNumber ASC, fs.departureDateTime DESC";
+
+        Query query = em.createQuery(jpql, FlightSchedulePlan.class);
+        return query.getResultList();
+    }
+
+    @Override
+    public void checkForClashes(FlightSchedulePlan newPlan) throws ClashingScheduleException {
+        List<FlightSchedule> allFlightSchedules = retrieveSchedulesForFlight(newPlan.getFlight());
+        for (FlightSchedule newFs : newPlan.getFlightSchedules()) {
+            for (FlightSchedule oldFs : allFlightSchedules) {
+                if (newFs.getDepartureDateTime().isAfter(oldFs.getDepartureDateTime()) && newFs.getDepartureDateTime().isBefore(oldFs.getArrivalDateTime())) {
+                    throw new ClashingScheduleException("There is an existing flight schedule plan that clashes with the input!");
+                } else if (newFs.getArrivalDateTime().isAfter(oldFs.getDepartureDateTime()) && newFs.getArrivalDateTime().isBefore(oldFs.getArrivalDateTime())) {
+                    throw new ClashingScheduleException("There is an existing flight schedule plan that clashes with the input!");
+                } else if (newFs.getDepartureDateTime().isEqual(oldFs.getDepartureDateTime())) {
+                    throw new ClashingScheduleException("There is an existing flight schedule plan that clashes with the input!");
+                }
+            }
+        }
+    }
+
+    @Override
+    public List<FlightSchedule> retrieveSchedulesForFlight(Flight flight) {
+        Query query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight = :inputFlight");
+        query.setParameter("inputFlight", flight);
+        return query.getResultList();
+    }
+
+    @Override
+    public List<FlightSchedule> retrieveSchedulesForFlight(Flight flight, LocalDateTime departDate) {
+//        String jpql = "SELECT fs FROM FlightSchedule fs WHERE fs.departureDateTime = :d AND fs.flightSchedulePlan.flight = :inputFlight";
+//        Query query = em.createQuery(jpql, FlightSchedule.class);
+//        query.setParameter("inputFlight", flight);
+//        query.setParameter("d", departDate.toLocalDate());
+//        return query.getResultList();
+        String jpql = "SELECT fs FROM FlightSchedule fs WHERE fs.departureDateTime >= :startDate AND fs.departureDateTime < :nextDate AND fs.flightSchedulePlan.flight = :inputFlight";
+        Query query = em.createQuery(jpql, FlightSchedule.class);
+
+        // Set the start date as the beginning of the provided departDate
+        LocalDateTime startDate = departDate.toLocalDate().atStartOfDay();
+
+        // Set the next date as the day after the provided departDate
+        LocalDateTime nextDate = startDate.plusDays(1);
+
+        query.setParameter("inputFlight", flight);
+        query.setParameter("startDate", startDate);
+        query.setParameter("nextDate", nextDate);
+
+        return query.getResultList();
+    }
+
+    private List<FlightSchedulePlan> retrieveAllFlightSchedulePlans() {
+        Query query = em.createQuery("SELECT fsp FROM FlightSchedulePlan fsp");
+        return query.getResultList();
+    }
+
+    public void updateFares(FlightSchedulePlan flightSchedulePlan) {
+        FlightSchedulePlan fsp = em.find(FlightSchedulePlan.class, flightSchedulePlan.getFlightSchedulePlanId());
+        for (Fare fare : fsp.getFares()) {
+            em.persist(fare);
+            CabinClass cc = fare.getCabinClass();
+            cc.getFares().add(fare);
+        }
+        em.flush();
+    }
+
 }
