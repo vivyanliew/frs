@@ -61,9 +61,10 @@ private int maxSeatCapacity;
         this.flights = new ArrayList<>();
     }
 
-    public AircraftConfig(String aircraftConfigName, int numCabinClasses) {
+    public AircraftConfig(AircraftType aircraftType, String aircraftConfigName, int numCabinClasses) {
 
         this();
+        this.aircraftType = aircraftType;
         this.aircraftConfigName = aircraftConfigName;
         this.numCabinClasses = numCabinClasses;
         //this.maxSeatCapacity = calculateMaxSeatCapacity(this.cabinClasses);
@@ -187,5 +188,13 @@ private int maxSeatCapacity;
      */
     public void setMaxSeatCapacity(int maxSeatCapacity) {
         this.maxSeatCapacity = maxSeatCapacity;
+    }
+    
+    public void updateMaxSeatCapacity() {
+        int max = 0;
+        for (int i = 0; i < this.cabinClasses.size(); i++) {
+            max += this.cabinClasses.get(i).getMaxSeatCapacity();
+        }
+        this.maxSeatCapacity = max;
     }
 }

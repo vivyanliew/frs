@@ -5,8 +5,10 @@
 package ejb.session.stateless;
 
 import entity.FlightReservation;
+import entity.FlightSchedule;
 import java.util.List;
 import javax.ejb.Remote;
+import util.exception.NoFlightReservationsException;
 
 /**
  *
@@ -14,6 +16,8 @@ import javax.ejb.Remote;
  */
 @Remote
 public interface FlightReservationSessionBeanRemote {
-   public FlightReservation createReservation(FlightReservation reservation, List<Long> flightScheduleIds);
+   public FlightReservation createReservation(FlightReservation reservation);
+
+    public List<FlightReservation> retrieveReservationsForFlightSchedule(FlightSchedule flightSchedule) throws NoFlightReservationsException;
 
 }

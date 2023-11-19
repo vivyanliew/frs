@@ -19,12 +19,14 @@ import entity.FlightSchedulePlan;
 import entity.SeatInventory;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import util.enumeration.FlightSchedulePlanType;
 import util.exception.ClashingScheduleException;
 import util.exception.FlightNotFoundException;
@@ -284,7 +286,7 @@ public class FlightOperationModule {
     }
 
     void createFlightSchedulePlan() {
-        Scanner sc = new Scanner(System.in);
+          Scanner sc = new Scanner(System.in);
         System.out.println("Enter Flight No.>");
         String flightNum = sc.nextLine().trim();
         Flight flight;
@@ -300,7 +302,7 @@ public class FlightOperationModule {
         }
         FlightSchedulePlan flightSchedulePlan = new FlightSchedulePlan();
         flightSchedulePlan.setFlight(flight);
-        
+
         while (true) {
             int response = 0;
             System.out.println("Select a type of schedule : ");
@@ -321,17 +323,19 @@ public class FlightOperationModule {
                 int numFS = sc.nextInt();
                 sc.nextLine().trim();
                 for (int i = 0; i < numFS; i++) {
+                    System.out.println("Flight Schedule " + (i + 1));
                     flightSchedulePlan.getFlightSchedules().add(createFlightSchedule(flight));
                 }
             } else if (response == 3) {
                 flightSchedulePlan.setFlightSchedulePlanType(FlightSchedulePlanType.RECURRENTNDAY);
-                List<FlightSchedule> schedules = createRecurrentNFlightSchedule(flight);
+                List<FlightSchedule> schedules = createRecurrentNFlightSchedule(flight, flightSchedulePlan);
                 flightSchedulePlan.getFlightSchedules().addAll(schedules);
             } else if (response == 4) {
                 flightSchedulePlan.setFlightSchedulePlanType(FlightSchedulePlanType.RECURRENTWEEKLY);
-                List<FlightSchedule> schedules = createRecurrentWeeklyFlightSchedule(flight);
+                List<FlightSchedule> schedules = createRecurrentWeeklyFlightSchedule(flight, flightSchedulePlan);
                 flightSchedulePlan.getFlightSchedules().addAll(schedules);
             }
+
             try {
                 flightSchedulePlanSessionBeanRemote.checkForClashes(flightSchedulePlan);
                 break;
@@ -367,8 +371,8 @@ public class FlightOperationModule {
                 System.out.println("Enter layover duration (in hours)");
                 int layover = sc.nextInt();
                 FlightSchedulePlan returnFSP = flightSchedulePlanSessionBeanRemote.createReturnFlightSchedulePlan(flightSchedulePlan, layover);
-                 List<CabinClass> returnCabinClasses = flight.getReturnFlight().getAircraftConfig().getCabinClasses();
-                 for (CabinClass c : returnCabinClasses) {
+                List<CabinClass> returnCabinClasses = flight.getReturnFlight().getAircraftConfig().getCabinClasses();
+                for (CabinClass c : returnCabinClasses) {
                     System.out.print("Enter number of fares for Cabin Class " + c.getCabinClassName() + ">");
                     int numFares = sc.nextInt();
                     sc.nextLine().trim();
@@ -382,34 +386,33 @@ public class FlightOperationModule {
                         returnFSP.getFares().add(fare);
                     }
                 }
-                 flightSchedulePlanSessionBeanRemote.updateFares(returnFSP);
-                //Long returnFSPId = flightSchedulePlanSessionBeanRemote.createReturnFlightSchedulePlan(flightSchedulePlan, layover);
+                flightSchedulePlanSessionBeanRemote.updateFares(returnFSP);
                 System.out.println("Return Flight Schedule Plan " + returnFSP.getFlightSchedulePlanId() + " is successfully created!");
             }
         }
     }
-
     FlightSchedule createFlightSchedule(Flight f) {
         Scanner sc = new Scanner(System.in);
-        System.out.print("Enter departure date (d MMM yy) (eg. 1 Jan 23) > ");
+        System.out.print("Enter departure date (d MMM yy)> ");
         String departDate = sc.nextLine();
-        System.out.print("Enter departure time (HH:mm AM/PM) (eg. 12:45 AM) > ");
+        System.out.print("Enter departure time (HH:mm AM/PM)> ");
         String departTime = sc.nextLine();
-        System.out.print("Enter flight duration (H Hours m Minute) (eg. 12 Hours 10 Minute) > ");
+        System.out.print("Enter flight duration (H Hours m Minute)> ");
         String duration = sc.nextLine();
 
         LocalDateTime departDateTime = parseDateTime(departDate + ", " + departTime);
-        int flightHours = parseDurationToHours(duration);
+        Duration flightHours = parseDurationString(duration);
 
         FlightSchedule fs = new FlightSchedule(departDateTime, flightHours);
         fs.setSeatInventory(createSeatInventory(f, fs));
         return fs;
     }
 
-    List<FlightSchedule> createRecurrentNFlightSchedule(Flight f) {
+    List<FlightSchedule> createRecurrentNFlightSchedule(Flight f, FlightSchedulePlan fsp) {
         Scanner sc = new Scanner(System.in);
         System.out.print("Enter flight interval (in days)> ");
         int n = sc.nextInt();
+        fsp.setRecurrentNDay(n);
         sc.nextLine();
         System.out.print("Enter departure time (HH:mm AM/PM)> ");
         String departTime = sc.nextLine();
@@ -422,12 +425,14 @@ public class FlightOperationModule {
 
         List<FlightSchedule> schedules = new ArrayList<FlightSchedule>();
         LocalDateTime startDateTime = parseDateTime(startDate + ", " + departTime);
+        fsp.setStartDate(startDateTime);
         LocalDateTime endDateTime = parseDateTime(endDate + ", " + departTime);
+        fsp.setEndDate(endDateTime);
 
         // Create recurrent FlightSchedules
-        LocalDateTime currentDateTime = startDateTime; // !currentDateTime.isAfter(endDateTime)
-        while (currentDateTime.isBefore(endDateTime)) {
-            FlightSchedule fs = new FlightSchedule(currentDateTime, parseDurationToHours(duration));
+        LocalDateTime currentDateTime = startDateTime;
+        while (!currentDateTime.isAfter(endDateTime)) {
+            FlightSchedule fs = new FlightSchedule(currentDateTime, parseDurationString(duration));
             fs.setSeatInventory(createSeatInventory(f, fs));
             schedules.add(fs);
             currentDateTime = currentDateTime.plusDays(n);
@@ -436,24 +441,28 @@ public class FlightOperationModule {
         return schedules;
     }
 
-    List<FlightSchedule> createRecurrentWeeklyFlightSchedule(Flight f) {
+
+    List<FlightSchedule> createRecurrentWeeklyFlightSchedule(Flight f, FlightSchedulePlan fsp) {
         Scanner sc = new Scanner(System.in);
         System.out.print("Enter flight day (e.g. Monday)> ");
         String dayString = sc.nextLine();
         DayOfWeek flightDay = DayOfWeek.valueOf(dayString.toUpperCase());
+        fsp.setDayOfWeek(flightDay);
         System.out.print("Enter departure time (HH:mm AM/PM)> ");
         String departTime = sc.nextLine();
         System.out.print("Enter start date (d MMM yy)> ");
         String startDate = sc.nextLine();
         System.out.print("Enter end date (d MMM yy)> ");
         String endDate = sc.nextLine();
-        System.out.print("Enter flight duration (H Hours m Minute)> ");
+        System.out.print("Enter flight duration (H Hours m Minutes)> ");
         String duration = sc.nextLine();
 
         List<FlightSchedule> schedules = new ArrayList<>();
         LocalDateTime startDateTime = parseDateTime(startDate + ", " + departTime);
+        fsp.setStartDate(startDateTime);
         LocalDateTime endDateTime = parseDateTime(endDate + ", " + departTime);
-        int flightHours = parseDurationToHours(duration);
+        fsp.setEndDate(endDateTime);
+        Duration flightHours = parseDurationString(duration);
 
         // Calculate the difference in days between the start date and the next occurrence of the specified day
         int daysUntilFlightDay = (flightDay.getValue() - startDateTime.getDayOfWeek().getValue() + 7) % 7;
@@ -469,7 +478,6 @@ public class FlightOperationModule {
 
         return schedules;
     }
-
     SeatInventory createSeatInventory(Flight f, FlightSchedule fs) {
         SeatInventory seatInventory = new SeatInventory();
         fs.setSeatInventory(seatInventory);
@@ -522,6 +530,19 @@ public class FlightOperationModule {
         // Convert hours and minutes to total hours
         int totalHours = hours + minutes / 60;
         return totalHours;
+    }
+    private static Duration parseDurationString(String durationString) {
+        Pattern pattern = Pattern.compile("(\\d+)\\s*Hours?\\s*(\\d+)?\\s*Minutes?");
+        Matcher matcher = pattern.matcher(durationString);
+
+        if (matcher.matches()) {
+            int hours = Integer.parseInt(matcher.group(1));
+            int minutes = matcher.group(2) != null ? Integer.parseInt(matcher.group(2)) : 0;
+
+            return Duration.ofHours(hours).plusMinutes(minutes);
+        } else {
+            throw new IllegalArgumentException("Invalid duration string format: " + durationString);
+        }
     }
 
 }

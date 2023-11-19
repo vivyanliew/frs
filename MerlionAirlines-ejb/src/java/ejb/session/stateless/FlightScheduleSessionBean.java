@@ -117,65 +117,100 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         return smallest;
     }
 
-    @Override
     public List<Pair<FlightSchedule, FlightSchedule>> getIndirectFlightSchedules(String departureAirportCode, String destinationAirportCode, LocalDateTime departDate, String cabinPref) throws FlightNotFoundException {
         List<Pair<FlightSchedule, FlightSchedule>> schedule = new ArrayList<>();
-        List<Flight[]> flight = flightSessionBean.retrieveAllIndirectFlightByFlightRoute(departureAirportCode, destinationAirportCode);
-        for (Object[] pair : flight) {
+        List<Flight[]> flightPairs = flightSessionBean.retrieveAllIndirectFlightByFlightRoute(departureAirportCode, destinationAirportCode);
+
+        for (Object[] pair : flightPairs) {
             Flight firstFlight = (Flight) pair[0];
             Flight secondFlight = (Flight) pair[1];
-            for (FlightSchedulePlan flightSchedulePlan : firstFlight.getFlightSchedulePlans()) {
-                if (flightSchedulePlan.isIsDisabled()) {
+            System.out.println(firstFlight.toString());
+            System.out.println(secondFlight.toString());
+            
+            if(firstFlight.getFlightSchedulePlans().isEmpty() || secondFlight.getFlightSchedulePlans().isEmpty() ) {
+                continue;
+            }
+            
+            for (FlightSchedulePlan firstFlightPlan : firstFlight.getFlightSchedulePlans()) {
+                if (firstFlightPlan.isIsDisabled()) {
                     continue;
                 }
-                for (FlightSchedule flightSchedule : flightSchedulePlan.getFlightSchedules()) {
-                    for (FlightSchedulePlan fsp : secondFlight.getFlightSchedulePlans()) {
-                        if (fsp.isIsDisabled()) {
+
+                for (FlightSchedule firstFlightSchedule : firstFlightPlan.getFlightSchedules()) {
+                    for (FlightSchedulePlan secondFlightPlan : secondFlight.getFlightSchedulePlans()) {
+                        if (secondFlightPlan.isIsDisabled()) {
                             continue;
                         }
-                        for (FlightSchedule flightSchedule2 : fsp.getFlightSchedules()) {
-                            boolean toAdd = false;
-                            if (cabinPref.equals("A")) { //check cabin preference
-                                toAdd = true;
-                            } else {
-                                SeatInventory seatInventory1 = flightSchedule.getSeatInventory();
-                                SeatInventory seatInventory2 = flightSchedule2.getSeatInventory();
-                                for (CabinClass cabinClass : seatInventory1.getAllCabinClasses()) {
-                                    for (CabinClass cabin : seatInventory2.getAllCabinClasses()) {
-                                        if (cabinClass.getCabinClassName().equals(cabinPref) && cabin.getCabinClassName().equals(cabinPref)) {
-                                            toAdd = true;
-                                        }
-                                    }
 
-                                }
+                        for (FlightSchedule secondFlightSchedule : secondFlightPlan.getFlightSchedules()) {
+                            boolean cabinClassMatch = false;
+                            boolean flight1DateMatch = false;
+                            boolean flight2DateMatch = false;
+
+                            // Check cabin preference
+                            if (cabinPref.equals("A") || cabinPreferenceMatches(firstFlightSchedule, secondFlightSchedule, cabinPref)) {
+                                cabinClassMatch = true;
                             }
-                            toAdd = false;
-                            //check if flight leaves on departdate
-                            LocalDateTime firstFlightDepartDate = flightSchedule.getDepartureDateTime();
-                            LocalDateTime nextDay = departDate.plusDays(1);
-                            if (firstFlightDepartDate.isEqual(departDate)) {
-                                toAdd = true;
+
+                            // Check if the first flight leaves on the departure date
+                            if (isFlightOnDepartureDate(firstFlightSchedule, departDate)) {
+                                flight1DateMatch = true;
                             }
-                            if (firstFlightDepartDate.isAfter(departDate) && firstFlightDepartDate.isBefore(nextDay)) {
-                                toAdd = true;
+
+                            // Check if the second flight leaves after the first flight
+                            if (isSecondFlightAfterFirst(firstFlightSchedule, secondFlightSchedule)) {
+                                flight2DateMatch = true;
                             }
                             
-                            //second flight leaves after first flight
-                            toAdd = false;
-                            LocalDateTime secondFlightDepartDate = flightSchedule2.getDepartureDateTime();
-                            if (secondFlightDepartDate.isAfter(flightSchedule.getArrivalDateTime()) || secondFlightDepartDate.isEqual(flightSchedule.getArrivalDateTime())) {
-                                toAdd = true;
-                            }
-                            if (toAdd) {
-                                schedule.add(new Pair(flightSchedule,flightSchedule2));
+                            System.out.println("FirstFlight: " + firstFlight.toString() + " " + secondFlight.toString());
+                            System.out.println("cabin class match: " + cabinClassMatch);
+                            System.out.println(firstFlightSchedule.getDepartureDateTime());
+                            System.out.println("flight1 date match: " + flight1DateMatch);
+                            System.out.println(secondFlightSchedule.getDepartureDateTime());
+                            System.out.println("flight2 date match: " + flight2DateMatch);
+
+                            // Add to schedule if all conditions are met
+                            if (cabinClassMatch && flight1DateMatch && flight2DateMatch) {
+                                schedule.add(new Pair<>(firstFlightSchedule, secondFlightSchedule));
+                                System.out.println("got sth inside la");
                             }
                         }
                     }
                 }
             }
         }
+
         Collections.sort(schedule, new FlightSchedule.IndirectFlightScheduleComparator());
+        System.out.println("size:" + schedule.size());
         return schedule;
+    }
+
+    private boolean cabinPreferenceMatches(FlightSchedule firstFlightSchedule, FlightSchedule secondFlightSchedule, String cabinPref) {
+        SeatInventory seatInventory1 = firstFlightSchedule.getSeatInventory();
+        SeatInventory seatInventory2 = secondFlightSchedule.getSeatInventory();
+
+        for (CabinClass cabinClass : seatInventory1.getAllCabinClasses()) {
+            for (CabinClass cabin : seatInventory2.getAllCabinClasses()) {
+                if (cabinClass.getCabinClassName().equals(cabinPref) && cabin.getCabinClassName().equals(cabinPref)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isFlightOnDepartureDate(FlightSchedule flightSchedule, LocalDateTime departDate) {
+        if (flightSchedule.getDepartureDateTime().isEqual(departDate)) {
+            return true;
+        }
+        if (flightSchedule.getDepartureDateTime().isAfter(departDate) && flightSchedule.getDepartureDateTime().isBefore(departDate.plusDays(1))) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isSecondFlightAfterFirst(FlightSchedule firstFlightSchedule, FlightSchedule secondFlightSchedule) {
+        return secondFlightSchedule.getDepartureDateTime().isAfter(firstFlightSchedule.getArrivalDateTime());
     }
     
     @Override

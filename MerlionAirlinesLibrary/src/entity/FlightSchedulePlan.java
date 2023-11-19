@@ -5,6 +5,8 @@
 package entity;
 
 import java.io.Serializable;
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -12,6 +14,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -36,11 +39,12 @@ public class FlightSchedulePlan implements Serializable {
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private Flight flight;
-    @OneToMany(mappedBy = "flightSchedulePlan", cascade = CascadeType.REMOVE)
+    @OneToMany (mappedBy = "flightSchedulePlan", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<FlightSchedule> flightSchedules;
 
     @Column(nullable = false)
     private boolean isDisabled;
+    
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private FlightSchedulePlanType flightSchedulePlanType;
@@ -49,15 +53,40 @@ public class FlightSchedulePlan implements Serializable {
     @Column
     private int layoverHours;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER)
     private List<Fare> fares;
 
     @OneToOne
     private FlightSchedulePlan returnFlightSchedulePlan;
+    
+    // attributes that will only apply to recurrent flights
+    @Column
+    private DayOfWeek dayOfWeek;
+    @Column
+    private int recurrentNDay;
+    @Column
+    private LocalDateTime startDate;
+    @Column
+    private LocalDateTime endDate;
 
     public FlightSchedulePlan() {
         this.flightSchedules = new ArrayList<FlightSchedule>();
         this.fares = new ArrayList<Fare>();
+    }
+    public FlightSchedulePlan(FlightSchedulePlanType flightSchedulePlanType, DayOfWeek dayOfWeek, LocalDateTime startDate, LocalDateTime endDate, Flight flight) {
+        this();
+        this.flightSchedulePlanType = flightSchedulePlanType;
+        this.dayOfWeek = dayOfWeek;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.flight = flight;
+    }
+    public FlightSchedulePlan(FlightSchedulePlanType flightSchedulePlanType, int recurrentNDay, LocalDateTime startDate, LocalDateTime endDate, Flight flight) {
+        this.flightSchedulePlanType = flightSchedulePlanType;
+        this.recurrentNDay = recurrentNDay;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.flight = flight;
     }
 
     public Flight getFlight() {
@@ -191,6 +220,62 @@ public class FlightSchedulePlan implements Serializable {
      */
     public void setLayoverHours(int layoverHours) {
         this.layoverHours = layoverHours;
+    }
+
+    /**
+     * @return the dayOfWeek
+     */
+    public DayOfWeek getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    /**
+     * @param dayOfWeek the dayOfWeek to set
+     */
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
+    }
+
+    /**
+     * @return the recurrentNDay
+     */
+    public int getRecurrentNDay() {
+        return recurrentNDay;
+    }
+
+    /**
+     * @param recurrentNDay the recurrentNDay to set
+     */
+    public void setRecurrentNDay(int recurrentNDay) {
+        this.recurrentNDay = recurrentNDay;
+    }
+
+    /**
+     * @return the startDate
+     */
+    public LocalDateTime getStartDate() {
+        return startDate;
+    }
+
+    /**
+     * @param startDate the startDate to set
+     */
+    public void setStartDate(LocalDateTime startDate) {
+        this.startDate = startDate;
+    }
+
+    /**
+     * @return the endDate
+     */
+    public LocalDateTime getEndDate() {
+        return endDate;
+    }
+
+    /**
+     * @param endDate the endDate to set
+     */
+    public void setEndDate(LocalDateTime endDate) {
+        this.endDate = endDate;
     }
 
 }

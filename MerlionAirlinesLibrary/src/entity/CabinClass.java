@@ -68,7 +68,7 @@ public class CabinClass implements Serializable {
         this.fares = new ArrayList<Fare>();
     }
 
-    public CabinClass(int numAisles, int numRows, int numSeatsAbreast, String actualSeatConfigPerCol) {
+    public CabinClass(String cabinClassName, int numAisles, int numRows, int numSeatsAbreast, String actualSeatConfigPerCol) {
         this();
         this.cabinClassName = cabinClassName;
         this.numAisles = numAisles;

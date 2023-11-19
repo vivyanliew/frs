@@ -38,8 +38,8 @@ public class FlightReservation implements Serializable {
     
     @OneToMany
     private List<Passenger> passengers;
-    @ManyToMany
-    private List<CabinClass> cabinClasses;
+//    @ManyToMany
+//    private List<CabinClass> cabinClasses;
     @Column(nullable = false)
     private String ccNum;
     @Column(nullable = false)
@@ -50,13 +50,15 @@ public class FlightReservation implements Serializable {
     private List<BigDecimal> fareAmount;
     @Column
     private List<String> fareBasisCode;
+    @Column
+    private List<Long> cabinClassIds;
     
     public FlightReservation() {
         this.fareAmount = new ArrayList<>();
         this.fareBasisCode = new ArrayList<>();
         this.passengers = new ArrayList<>();
         this.flightSchedules = new ArrayList<>();
-        this.cabinClasses = new ArrayList<>();
+        this.cabinClassIds = new ArrayList<>();
     }
 
     public List<FlightSchedule> getFlightSchedules() {
@@ -123,19 +125,7 @@ public class FlightReservation implements Serializable {
         this.passengers = passengers;
     }
 
-    /**
-     * @return the cabinClasses
-     */
-    public List<CabinClass> getCabinClasses() {
-        return cabinClasses;
-    }
-
-    /**
-     * @param cabinClasses the cabinClasses to set
-     */
-    public void setCabinClasses(List<CabinClass> cabinClasses) {
-        this.cabinClasses = cabinClasses;
-    }
+    
 
     /**
      * @return the ccNum
@@ -205,6 +195,20 @@ public class FlightReservation implements Serializable {
      */
     public void setFareBasisCode(List<String> fareBasisCode) {
         this.fareBasisCode = fareBasisCode;
+    }
+
+    /**
+     * @return the cabinClassIds
+     */
+    public List<Long> getCabinClassIds() {
+        return cabinClassIds;
+    }
+
+    /**
+     * @param cabinClassIds the cabinClassIds to set
+     */
+    public void setCabinClassIds(List<Long> cabinClassIds) {
+        this.cabinClassIds = cabinClassIds;
     }
     
 }

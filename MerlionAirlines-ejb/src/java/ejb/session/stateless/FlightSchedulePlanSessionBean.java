@@ -10,11 +10,11 @@ import entity.Flight;
 import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
 import entity.SeatInventory;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -104,11 +104,11 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
     }
 
     private void createReturnFlightSchedules(FlightSchedulePlan mainFSP, FlightSchedulePlan returnFSP) {
-        mainFSP = em.find(FlightSchedulePlan.class, mainFSP.getFlightSchedulePlanId());
+         mainFSP = em.find(FlightSchedulePlan.class, mainFSP.getFlightSchedulePlanId());
         int numFS = mainFSP.getFlightSchedules().size();
         for (int i = 0; i < numFS; i++) {
             LocalDateTime returnDepart = mainFSP.getFlightSchedules().get(i).getArrivalDateTime().plusHours(mainFSP.getLayoverHours());
-            int returnDuration = mainFSP.getFlightSchedules().get(i).getFlightDurationHours();
+            Duration returnDuration = mainFSP.getFlightSchedules().get(i).getFlightDurationHours();
 
             FlightSchedule returnFS = new FlightSchedule(returnDepart, returnDuration);
             em.persist(returnFS);
@@ -116,7 +116,7 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
             returnFSP.getFlightSchedules().add(returnFS);
             returnFS.setFlightSchedulePlan(returnFSP);
 
-            returnFSP.setFares(mainFSP.getFares());
+            //returnFSP.setFares(mainFSP.getFares());
             returnFSP.setFlight(mainFSP.getFlight().getReturnFlight());
 
             em.flush();

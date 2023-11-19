@@ -586,16 +586,23 @@ public class MainApp {
                 }
 
                 outbound1Reservation.setCustomer(currentCustomer);
-                
-                outbound1Reservation.setCabinClasses(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
-                //outbound1Reservation.getFlightSchedules().add(outbound1FlightSchedule);
-                List<Long> flightSchedulesId = new ArrayList<>();
-                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
-                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation, flightSchedulesId);
-                for (Passenger p:passengers) {
-                    passengerSessionBeanRemote.createPassenger(p,outbound1Reservation.getFlightReservationId());
-                }
                 outbound1Reservation.setPassengers(passengers);
+                
+                for (CabinClass cabinClass: outbound1FlightSchedule.getSeatInventory().getAllCabinClasses()) {
+                    outbound1Reservation.getCabinClassIds().add(cabinClass.getCabinClassId());
+                }
+                
+                outbound1Reservation.getFlightSchedules().add(outbound1FlightSchedule);
+                //outbound1Reservation.setCabinClassIds(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+                //outbound1Reservation.getFlightSchedules().add(outbound1FlightSchedule);
+//                List<Long> flightSchedulesId = new ArrayList<>();
+//                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
+//                outbound1Reservation.getFlightSchedules().add(outbound1FlightSchedule);
+                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation);
+//                for (Passenger p:passengers) {
+//                    passengerSessionBeanRemote.createPassenger(p,outbound1Reservation.getFlightReservationId());
+//                }
+//                
                 
                 //outbound1FlightSchedule.getFlightReservations().add(outbound1Reservation);
                 System.out.println("Flight reservation " + outbound1Reservation.getFlightReservationId() + " created successfully");
@@ -655,18 +662,26 @@ public class MainApp {
                     passengers.get(i).getSeats().add(inbound1SeatSelection.get(i));
                     //passengers.get(i).setFlightReservations(outbound1Reservation);
                 }
-                
-
-                List<Long> flightSchedulesId = new ArrayList<>();
-                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
-                flightSchedulesId.add(inbound1FlightSchedule.getFlightScheduleId());
-                outbound1Reservation.getCabinClasses().addAll(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
-                outbound1Reservation.getCabinClasses().addAll(inbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
-                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation, flightSchedulesId);
-                for (Passenger p:passengers) {
-                    passengerSessionBeanRemote.createPassenger(p,outbound1Reservation.getFlightReservationId());
-                }
                 outbound1Reservation.setPassengers(passengers);
+                
+//                List<Long> flightSchedulesId = new ArrayList<>();
+//                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
+//                flightSchedulesId.add(inbound1FlightSchedule.getFlightScheduleId());
+                for (CabinClass cabinClass: outbound1FlightSchedule.getSeatInventory().getAllCabinClasses()) {
+                    outbound1Reservation.getCabinClassIds().add(cabinClass.getCabinClassId());
+                }
+                for (CabinClass cabinClass2: inbound1FlightSchedule.getSeatInventory().getAllCabinClasses()) {
+                    outbound1Reservation.getCabinClassIds().add(cabinClass2.getCabinClassId());
+                }
+                outbound1Reservation.getFlightSchedules().add(outbound1FlightSchedule);
+                outbound1Reservation.getFlightSchedules().add(inbound1FlightSchedule);
+//                outbound1Reservation.getCabinClasses().addAll(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+//                outbound1Reservation.getCabinClasses().addAll(inbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation);
+//                for (Passenger p:passengers) {
+//                    passengerSessionBeanRemote.createPassenger(p,outbound1Reservation.getFlightReservationId());
+//                }
+//                outbound1Reservation.setPassengers(passengers);
                 System.out.println("Flight reservation " + outbound1Reservation.getFlightReservationId() + " created successfully");
 
             } else if (ib1 == null && ib2 == null) { //one-way connecting
@@ -724,12 +739,20 @@ public class MainApp {
                     //passengers.get(i).setFlightReservations(outbound1Reservation);
                 }
                 outbound1Reservation.setPassengers(passengers);
-                List<Long> flightSchedulesId = new ArrayList<>();
-                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
-                flightSchedulesId.add(outbound2FlightSchedule.getFlightScheduleId());
-                outbound1Reservation.getCabinClasses().addAll(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
-                outbound1Reservation.getCabinClasses().addAll(outbound2FlightSchedule.getSeatInventory().getAllCabinClasses());
-                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation, flightSchedulesId);
+                outbound1Reservation.getFlightSchedules().add(outbound1FlightSchedule);
+                outbound1Reservation.getFlightSchedules().add(outbound2FlightSchedule);
+//                List<Long> flightSchedulesId = new ArrayList<>();
+//                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
+//                flightSchedulesId.add(outbound2FlightSchedule.getFlightScheduleId());
+//                for (CabinClass cabinClass: outbound1FlightSchedule.getSeatInventory().getAllCabinClasses()) {
+//                    outbound1Reservation.getCabinClassIds().add(cabinClass.getCabinClassId());
+//                }
+//                for (CabinClass cabinClass: outbound2FlightSchedule.getSeatInventory().getAllCabinClasses()) {
+//                    outbound1Reservation.getCabinClassIds().add(cabinClass.getCabinClassId());
+//                }
+//                outbound1Reservation.getCabinClasses().addAll(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+//                outbound1Reservation.getCabinClasses().addAll(outbound2FlightSchedule.getSeatInventory().getAllCabinClasses());
+                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation);
                 System.out.println("Flight reservation " + outbound1Reservation.getFlightReservationId() + " created successfully");
 
             } else { //return connecting
@@ -818,16 +841,32 @@ public class MainApp {
                     passengers.get(i).getSeats().add(inbound2SeatSelection.get(i));
                 }
                 outbound1Reservation.setPassengers(passengers);
-                List<Long> flightSchedulesId = new ArrayList<>();
-                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
-                flightSchedulesId.add(outbound2FlightSchedule.getFlightScheduleId());
-                flightSchedulesId.add(inbound1FlightSchedule.getFlightScheduleId());
-                flightSchedulesId.add(inbound2FlightSchedule.getFlightScheduleId());
-                outbound1Reservation.getCabinClasses().addAll(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
-                outbound1Reservation.getCabinClasses().addAll(outbound2FlightSchedule.getSeatInventory().getAllCabinClasses());
-                 outbound1Reservation.getCabinClasses().addAll(inbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
-                outbound1Reservation.getCabinClasses().addAll(inbound2FlightSchedule.getSeatInventory().getAllCabinClasses());
-                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation, flightSchedulesId);
+                outbound1Reservation.getFlightSchedules().add(outbound1FlightSchedule);
+                outbound1Reservation.getFlightSchedules().add(outbound2FlightSchedule);
+                outbound1Reservation.getFlightSchedules().add(inbound1FlightSchedule);
+                outbound1Reservation.getFlightSchedules().add(inbound2FlightSchedule);
+//                List<Long> flightSchedulesId = new ArrayList<>();
+//                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
+//                flightSchedulesId.add(outbound2FlightSchedule.getFlightScheduleId());
+//                flightSchedulesId.add(inbound1FlightSchedule.getFlightScheduleId());
+//                flightSchedulesId.add(inbound2FlightSchedule.getFlightScheduleId());
+//                for (CabinClass cabinClass: outbound1FlightSchedule.getSeatInventory().getAllCabinClasses()) {
+//                    outbound1Reservation.getCabinClassIds().add(cabinClass.getCabinClassId());
+//                }
+//                for (CabinClass cabinClass: outbound2FlightSchedule.getSeatInventory().getAllCabinClasses()) {
+//                    outbound1Reservation.getCabinClassIds().add(cabinClass.getCabinClassId());
+//                }
+//                for (CabinClass cabinClass: inbound1FlightSchedule.getSeatInventory().getAllCabinClasses()) {
+//                    outbound1Reservation.getCabinClassIds().add(cabinClass.getCabinClassId());
+//                }
+//                for (CabinClass cabinClass: inbound2FlightSchedule.getSeatInventory().getAllCabinClasses()) {
+//                    outbound1Reservation.getCabinClassIds().add(cabinClass.getCabinClassId());
+//                }
+//                outbound1Reservation.getCabinClasses().addAll(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+//                outbound1Reservation.getCabinClasses().addAll(outbound2FlightSchedule.getSeatInventory().getAllCabinClasses());
+//                 outbound1Reservation.getCabinClasses().addAll(inbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+//                outbound1Reservation.getCabinClasses().addAll(inbound2FlightSchedule.getSeatInventory().getAllCabinClasses());
+                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation);
                 
                 
                 System.out.println("Flight reservation " + outbound1Reservation.getFlightReservationId() + " created successfully");

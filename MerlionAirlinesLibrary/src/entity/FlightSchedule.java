@@ -5,8 +5,7 @@
 package entity;
 
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 //import java.util.Date;
@@ -40,7 +39,7 @@ public class FlightSchedule implements Serializable {
     private LocalDateTime departureDateTime;
     @Column(nullable = false)
     @NotNull
-    private int flightDurationHours;
+    private Duration flightDurationHours;
     @Column(nullable = false)
     private boolean isDisabled;
     
@@ -56,11 +55,10 @@ public class FlightSchedule implements Serializable {
     public FlightSchedule() {
     }
 
-    public FlightSchedule(LocalDateTime departureDateTime, int flightDurationHours) {
+    public FlightSchedule(LocalDateTime departureDateTime, Duration flightDurationHours) {
         this.departureDateTime = departureDateTime;
         this.flightDurationHours = flightDurationHours;
     }
-
     public SeatInventory getSeatInventory() {
         return seatInventory;
     }
@@ -84,11 +82,11 @@ public class FlightSchedule implements Serializable {
         this.departureDateTime = departureDateTime;
     }
 
-    public int getFlightDurationHours() {
+    public Duration getFlightDurationHours() {
         return flightDurationHours;
     }
 
-    public void setFlightDurationHours(int flightDurationHours) {
+    public void setFlightDurationHours(Duration flightDurationHours) {
         this.flightDurationHours = flightDurationHours;
     }
 
@@ -101,7 +99,7 @@ public class FlightSchedule implements Serializable {
     }
 
     public LocalDateTime getArrivalDateTime() {
-        LocalDateTime arrivalDateTime = this.departureDateTime.plusHours(this.flightDurationHours);
+        LocalDateTime arrivalDateTime = this.departureDateTime.plus(this.flightDurationHours);
         return arrivalDateTime;
     }
 
