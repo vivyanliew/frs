@@ -70,6 +70,9 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         for (FlightSchedule fs : fsp.getFlightSchedules()) {
             em.persist(fs);
             fs.setFlightSchedulePlan(fsp);
+            //em.persist(fs.getSeatInventory());
+            SeatInventory si = fs.getSeatInventory();
+            si.setFlightSchedule(fs);
             em.persist(fs.getSeatInventory());
         }
         for (Fare fare : fsp.getFares()) {
@@ -123,20 +126,26 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
     }
 
     private SeatInventory createSeatInventory(Flight f, FlightSchedule fs) {
-        SeatInventory seatInventory = new SeatInventory(fs);
+        FlightSchedule flightSchedule = em.find(FlightSchedule.class, fs.getFlightScheduleId());
+        SeatInventory seatInventory = new SeatInventory(flightSchedule);
         em.persist(seatInventory);
-        //Flight fl = em.find(Flight.class, f.getFlightId());
+        flightSchedule.setSeatInventory(seatInventory);
+  
         seatInventory.getAllCabinClasses().addAll(f.getAircraftConfig().getCabinClasses());
         int numCabinClasses = f.getAircraftConfig().getNumCabinClasses();
 
         //ArrayList<List<String>> toSet = ;
         seatInventory.setAvailableSeats(new ArrayList<List<String>>(numCabinClasses));
+         seatInventory.setBalanceSeats(new ArrayList<List<String>>(numCabinClasses));
+        seatInventory.setReservedSeats(new ArrayList<List<String>>(numCabinClasses));
 
         for (int i = 0; i < numCabinClasses; i++) {
             CabinClass c = seatInventory.getAllCabinClasses().get(i);
             int numRows = c.getNumRows();
             int numSeatsAbreast = c.getNumSeatsAbreast();
             seatInventory.getAvailableSeats().add(new ArrayList<String>(numRows * numSeatsAbreast));
+            seatInventory.getReservedSeats().add(new ArrayList<String>(numRows * numSeatsAbreast));
+            seatInventory.getBalanceSeats().add(new ArrayList<String>(numRows * numSeatsAbreast));
             for (int j = 1; j <= numRows; j++) {
                 for (int k = 0; k < numSeatsAbreast; k++) {
                     char alphabet = (char) ('A' + k);
