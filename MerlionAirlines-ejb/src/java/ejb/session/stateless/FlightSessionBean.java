@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import util.exception.FlightNotFoundException;
@@ -31,22 +32,44 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
     private EntityManager em;
 
     @Override
-    public Flight createNewFlight(Flight flight, FlightRoute route) {
-        em.persist(flight);
-        FlightRoute flightRoute = em.find(FlightRoute.class, route.getFlightRouteId());
-        flightRoute.getFlights().add(flight);
-        em.flush();
-        return flight;
+    public Flight createNewFlight(Flight flight, FlightRoute route) throws NonUniqueFlightNumException {
+
+        Query query = em.createQuery("SELECT f FROM Flight f WHERE f.flightNumber =:input ");
+        query.setParameter("input", flight.getFlightNumber());
+
+        try {
+            Flight existingFlight = (Flight) query.getSingleResult();
+            // If a flight with the same number exists, throw an exception
+            throw new NonUniqueFlightNumException("Flight number already exists!");
+        } catch (NoResultException e) {
+            // No flight with the specified number found, proceed with creating the new flight
+            em.persist(flight);
+
+            FlightRoute flightRoute = em.find(FlightRoute.class, route.getFlightRouteId());
+            flightRoute.getFlights().add(flight);
+
+            em.flush();
+            return flight;
+        }
+
     }
 
     @Override
-    public Flight createReturnFlight(Flight mainFlight, Flight returnFlight) {
-        em.persist(returnFlight);
-        mainFlight = em.find(Flight.class, mainFlight.getFlightId());
-        mainFlight.setReturnFlight(returnFlight);
-        FlightRoute returnRoute = em.find(FlightRoute.class, mainFlight.getFlightRoute().getReturnRoute().getFlightRouteId());
-        returnRoute.getFlights().add(returnFlight);
-        return returnFlight;
+    public Flight createReturnFlight(Flight mainFlight, Flight returnFlight) throws NonUniqueFlightNumException {
+        Query query = em.createQuery("SELECT f FROM Flight f WHERE f.flightNumber =:input ");
+        query.setParameter("input", returnFlight.getFlightNumber());
+        Flight checkReturn = (Flight) query.getSingleResult();
+        if (checkReturn == null) {
+            em.persist(returnFlight);
+            mainFlight = em.find(Flight.class, mainFlight.getFlightId());
+            mainFlight.setReturnFlight(returnFlight);
+            FlightRoute returnRoute = em.find(FlightRoute.class, mainFlight.getFlightRoute().getReturnRoute().getFlightRouteId());
+            returnRoute.getFlights().add(returnFlight);
+            return returnFlight;
+        } else {
+            throw new NonUniqueFlightNumException("Flight number already exists!");
+        }
+
     }
 
     @Override

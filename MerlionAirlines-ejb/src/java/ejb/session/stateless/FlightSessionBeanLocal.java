@@ -21,9 +21,9 @@ import util.exception.NonUniqueFlightNumException;
 @Local
 public interface FlightSessionBeanLocal {
 
-    public Flight createNewFlight(Flight flight, FlightRoute route);
+    public Flight createNewFlight(Flight flight, FlightRoute route) throws NonUniqueFlightNumException;
 
-    public Flight createReturnFlight(Flight mainFlight, Flight returnFlight);
+    public Flight createReturnFlight(Flight mainFlight, Flight returnFlight) throws NonUniqueFlightNumException;
 
     public List<Flight> retrieveAllFlights();
 

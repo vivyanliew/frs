@@ -44,6 +44,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import util.enumeration.EmployeeUserRole;
 import util.enumeration.FlightSchedulePlanType;
+import util.exception.NonUniqueFlightNumException;
 
 /**
  *
@@ -95,8 +96,7 @@ public class DataInitSessionBean {
         }
         
         
-        
-
+     
     }
     void doDataInit() {
         
@@ -193,7 +193,9 @@ public class DataInitSessionBean {
             FlightRoute nrtSYD = flightRouteSessionBeanLocal.createNewFlightRoute(new FlightRoute(nrt, syd));
             flightRouteSessionBeanLocal.setReturnRoute(sydNRT, nrtSYD);
 
-            Flight ml111 = new Flight("ML111", sinHKG, ac2);
+            
+            try {
+                Flight ml111 = new Flight("ML111", sinHKG, ac2);
             ml111 = flightSessionBeanLocal.createNewFlight(ml111, sinHKG);
             Flight ml112 = new Flight("ML112", hkgSIN, ac2);
             ml112 = flightSessionBeanLocal.createReturnFlight(ml111, ml112);
@@ -232,8 +234,8 @@ public class DataInitSessionBean {
             ml711 = flightSessionBeanLocal.createNewFlight(ml711, sydNRT);
             Flight ml712 = new Flight("ML712", nrtSYD, ac4);
             ml712 = flightSessionBeanLocal.createReturnFlight(ml711, ml712);
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yy, h:mm a");
+            
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yy, h:mm a");
 
             FlightSchedulePlan fsp1 = new FlightSchedulePlan(FlightSchedulePlanType.RECURRENTWEEKLY, DayOfWeek.MONDAY,
                     LocalDateTime.parse("1 Dec 23, 9:00 AM", formatter), LocalDateTime.parse("31 Dec 23, 9:00 AM", formatter), ml711);
@@ -309,6 +311,11 @@ public class DataInitSessionBean {
             // return is ml512 ac2 -> cc2 $3100, cc3 $1600, cc4 $600
 
         
+            } catch(NonUniqueFlightNumException ex) {
+                System.out.println(ex.getMessage());
+            }
+
+    
     }
 
     private FlightSchedule createFlightSchedule(Flight flight, LocalDateTime departureDateTime, Duration flightHours) {

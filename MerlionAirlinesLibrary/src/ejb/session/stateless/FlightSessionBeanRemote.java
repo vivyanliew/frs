@@ -20,9 +20,9 @@ import util.exception.NonUniqueFlightNumException;
  */
 @Remote
 public interface FlightSessionBeanRemote {
-    public Flight createNewFlight(Flight flight, FlightRoute route);
+    public Flight createNewFlight(Flight flight, FlightRoute route) throws NonUniqueFlightNumException;
 
-    public Flight createReturnFlight(Flight mainFlight, Flight returnFlight);
+    public Flight createReturnFlight(Flight mainFlight, Flight returnFlight) throws NonUniqueFlightNumException;
     public List<Flight> retrieveAllFlights();
     public void deleteFlight(String flightNum) throws FlightNotFoundException;
     public Flight retrieveFlightByFlightNumber(String inputFlightNumber) throws FlightNotFoundException;

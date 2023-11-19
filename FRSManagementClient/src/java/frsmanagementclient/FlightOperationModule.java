@@ -76,7 +76,12 @@ public class FlightOperationModule {
                 response = sc.nextInt();
 
                 if (response == 1) {
-                    createFlight();
+                    try {
+                        createFlight();
+                    } catch (NonUniqueFlightNumException ex) {
+                        System.out.println(ex.getMessage());
+                    }
+                    
                 } else if (response == 2) {
                     viewAllFlights();
                 } else if (response == 3) {
@@ -101,7 +106,7 @@ public class FlightOperationModule {
         }
     }
 
-    void createFlight() {
+    void createFlight() throws NonUniqueFlightNumException {
         Scanner sc = new Scanner(System.in);
         System.out.println("Enter Flight No.>");
         String flightNum = sc.nextLine().trim();
@@ -109,7 +114,7 @@ public class FlightOperationModule {
         List<FlightRoute> allFlightRoutes = flightRouteSessionBeanRemote.retrieveAllFlightRoutes();
         int count = 1;
         for (FlightRoute fr : allFlightRoutes) {
-            if (!fr.isReturn()) {
+            if (!fr.isDisabled()) { 
                 System.out.println(count + ": " + fr.getOriginAirport().getIataCode() + " -> " + fr.getDestinationAirport().getIataCode());
                 count++;
             }
