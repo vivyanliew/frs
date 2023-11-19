@@ -6,6 +6,8 @@ package ejb.session.stateless;
 
 import entity.Airport;
 import javax.ejb.Local;
+import javax.persistence.NoResultException;
+import util.exception.AirportNotFoundException;
 
 /**
  *
@@ -16,6 +18,6 @@ public interface AirportSessionBeanLocal {
 
     public Airport createNewAirport(Airport airport);
 
-    public Airport retrieveAirportByIATACode(String code);
+    public Airport retrieveAirportByIATACode(String code)  throws AirportNotFoundException;
     
 }

@@ -7,6 +7,7 @@ package ejb.session.stateless;
 import entity.FlightRoute;
 import java.util.List;
 import javax.ejb.Local;
+import util.exception.FlightRouteNotFoundException;
 
 /**
  *
@@ -21,8 +22,11 @@ public interface FlightRouteSessionBeanLocal {
 
     public List<FlightRoute> getFlightRoutes();
 
-    public void deleteFlightRoute(Long flightRouteId);
-
+    
     public List<FlightRoute> retrieveAllFlightRoutes();
+    public boolean isDuplicateFlightRoute(FlightRoute flightRoute);
+    public FlightRoute hasReturnFlightRoute(FlightRoute flightRoute);
+
+    public void deleteFlightRoute(String origin, String destination) throws FlightRouteNotFoundException;
     
 }

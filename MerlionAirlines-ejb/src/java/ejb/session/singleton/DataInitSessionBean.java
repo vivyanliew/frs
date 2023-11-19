@@ -41,6 +41,7 @@ import javax.ejb.LocalBean;
 import javax.ejb.Startup;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import util.enumeration.EmployeeUserRole;
 import util.enumeration.FlightSchedulePlanType;
 
@@ -82,10 +83,23 @@ public class DataInitSessionBean {
 
     @EJB
     private FlightSchedulePlanSessionBeanLocal flightSchedulePlanSessionBeanLocal;
+    
 
     @PostConstruct
     public void postConstruct() {
-        if (em.find(Employee.class, 1l) == null) {
+        
+        Query query = em.createQuery("SELECT e FROM Employee e");
+        List<Employee> employeeList = query.getResultList();
+        if (employeeList.isEmpty()) {
+            doDataInit();
+        }
+        
+        
+        
+
+    }
+    void doDataInit() {
+        
             employeeSessionBeanLocal.createNewEmployee(new Employee("Fleet Manager", "fleetmanager@mlair.com.sg", "password", EmployeeUserRole.FLEETMANAGER));
             employeeSessionBeanLocal.createNewEmployee(new Employee("Route Planner", "routeplanner@mlair.com.sg", "password", EmployeeUserRole.ROUTEPLANNER));
             employeeSessionBeanLocal.createNewEmployee(new Employee("Schedule Manager", "schedulemanager@mlair.com.sg", "password", EmployeeUserRole.SCHEDULEMANAGER));
@@ -122,7 +136,7 @@ public class DataInitSessionBean {
             AircraftConfig ac1 = new AircraftConfig(at1, "Boeing 737 All Economy", 1);
             at1.getAircraftConfigs().add(ac1);
             ac1.getCabinClasses().add(cc1);
-            ac1.updateMaxSeatCapacity();
+            //ac1.updateMaxSeatCapacity();
 
             // Boeing 737 Three Classes
             AircraftConfig ac2 = new AircraftConfig(at1, "Boeing 737 Three Classes", 3);
@@ -130,13 +144,13 @@ public class DataInitSessionBean {
             ac2.getCabinClasses().add(cc2);
             ac2.getCabinClasses().add(cc3);
             ac2.getCabinClasses().add(cc4);
-            ac2.updateMaxSeatCapacity();
+            //ac2.updateMaxSeatCapacity();
 
             // Boeing 747 All Economy
             AircraftConfig ac3 = new AircraftConfig(at2, "Boeing 747 All Economy", 1);
             at2.getAircraftConfigs().add(ac3);
             ac3.getCabinClasses().add(cc5);
-            ac3.updateMaxSeatCapacity();
+            //ac3.updateMaxSeatCapacity();
 
             // Boeing 747 Three Classes
             AircraftConfig ac4 = new AircraftConfig(at2, "Boeing 747 Three Classes", 3);
@@ -144,7 +158,7 @@ public class DataInitSessionBean {
             ac4.getCabinClasses().add(cc2);
             ac4.getCabinClasses().add(cc6);
             ac4.getCabinClasses().add(cc7);
-            ac4.updateMaxSeatCapacity();
+            //ac4.updateMaxSeatCapacity();
 
             aircraftConfigSessionBeanLocal.createNewAircraftConfig(ac1);
             aircraftConfigSessionBeanLocal.createNewAircraftConfig(ac2);
@@ -155,8 +169,8 @@ public class DataInitSessionBean {
             FlightRoute hkgSIN = flightRouteSessionBeanLocal.createNewFlightRoute(new FlightRoute(hkg, sin));
             flightRouteSessionBeanLocal.setReturnRoute(sinHKG, hkgSIN);
 
-            FlightRoute sinTPE = flightRouteSessionBeanLocal.createNewFlightRoute(new FlightRoute(sin, hkg));
-            FlightRoute tpeSIN = flightRouteSessionBeanLocal.createNewFlightRoute(new FlightRoute(sin, hkg));
+            FlightRoute sinTPE = flightRouteSessionBeanLocal.createNewFlightRoute(new FlightRoute(sin, tpe));
+            FlightRoute tpeSIN = flightRouteSessionBeanLocal.createNewFlightRoute(new FlightRoute(tpe, sin));
             flightRouteSessionBeanLocal.setReturnRoute(sinTPE, tpeSIN);
 
             FlightRoute sinNRT = flightRouteSessionBeanLocal.createNewFlightRoute(new FlightRoute(sin, nrt));
@@ -294,8 +308,7 @@ public class DataInitSessionBean {
             FlightSchedulePlan fsp6Return = flightSchedulePlanSessionBeanLocal.createReturnFlightSchedulePlan(fsp6, 2);
             // return is ml512 ac2 -> cc2 $3100, cc3 $1600, cc4 $600
 
-        }
-
+        
     }
 
     private FlightSchedule createFlightSchedule(Flight flight, LocalDateTime departureDateTime, Duration flightHours) {

@@ -4,6 +4,7 @@
  */
 package ejb.session.stateless;
 
+import entity.Customer;
 import entity.FlightReservation;
 import entity.FlightSchedule;
 import java.util.List;
@@ -20,5 +21,6 @@ public interface FlightReservationSessionBeanLocal {
    public FlightReservation createReservation(FlightReservation reservation);
        public List<FlightReservation> retrieveReservationsForFlightSchedule(FlightSchedule flightSchedule) throws NoFlightReservationsException;
 
-    
+        public List<FlightReservation> retrieveReservationsForCustomer(Customer c) throws NoFlightReservationsException;
+
 }

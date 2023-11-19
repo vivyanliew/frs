@@ -15,5 +15,6 @@ import javax.ejb.Local;
 public interface CabinClassSessionBeanLocal {
 
     public CabinClass createCabinClass(CabinClass cabinClass);
-    
+        public String retrieveCabinClassName(Long cabinClassId);
+
 }

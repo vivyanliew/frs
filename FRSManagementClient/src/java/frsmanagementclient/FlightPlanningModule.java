@@ -8,9 +8,7 @@ import ejb.session.stateless.AircraftConfigSessionBeanRemote;
 import ejb.session.stateless.AircraftTypeSessionBeanRemote;
 import ejb.session.stateless.AirportSessionBeanRemote;
 import ejb.session.stateless.CabinClassSessionBeanRemote;
-import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.FlightRouteSessionBeanRemote;
-import ejb.session.stateless.FlightSessionBeanRemote;
 import entity.AircraftConfig;
 import entity.AircraftType;
 import entity.Airport;
@@ -20,8 +18,9 @@ import entity.FlightRoute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import javax.ejb.EJB;
 import util.enumeration.EmployeeUserRole;
+import util.exception.AirportNotFoundException;
+import util.exception.FlightRouteNotFoundException;
 
 /**
  *
@@ -60,7 +59,7 @@ public class FlightPlanningModule {
                 System.out.println("1: Create Aircraft Configuration");
                 System.out.println("2: View All Aircraft Configurations");
                 System.out.println("3: View Aircraft Configuration Details");
-                System.out.println("4: Logout");               
+                System.out.println("4: Logout");
                 response = 0;
                 while (response < 1 || response > 4) {
                     System.out.print("> ");
@@ -75,7 +74,6 @@ public class FlightPlanningModule {
                         viewAircraftConfigDetails();
                     } else if (response == 4) {
                         break;
-                       
 
                     } else {
                         System.out.println("Invalid option, please try again!\n");
@@ -87,7 +85,7 @@ public class FlightPlanningModule {
                 System.out.println("1: Create Flight Route");
                 System.out.println("2: View All Flight Routes");
                 System.out.println("3: Delete Flight Route");
-                System.out.println("4: Logout"); 
+                System.out.println("4: Logout");
                 response = 0;
                 while (response < 1 || response > 4) {
                     System.out.print("> ");
@@ -102,9 +100,8 @@ public class FlightPlanningModule {
                         deleteFlightRoute();
                     } else if (response == 4) {
                         break;
-                        
 
-                    }  else {
+                    } else {
                         System.out.println("Invalid option, please try again!\n");
                     }
                 }
@@ -127,42 +124,45 @@ public class FlightPlanningModule {
         sc.nextLine();
         System.out.println("Enter Aircraft Configuration Name> ");
         newAircraftConfig.setAircraftConfigName(sc.nextLine());
-        System.out.println("Enter number of cabin classes");
+        System.out.println("Enter number of cabin classes>");
         int numCabinClass = sc.nextInt();
         sc.nextLine().trim();
         newAircraftConfig.setNumCabinClasses(numCabinClass);
 
         List<CabinClass> allCabins = new ArrayList<>();
-        int totalCabinClassSeats = 0;
+        int currentSeatCapacity = 0;
         while (true) {
             for (int i = 1; i <= numCabinClass; i++) {
-                //int numAisles, int numRows, int numSeatsAbreast
+
                 CabinClass currCabinClass = new CabinClass();
                 System.out.println("* Cabin Class " + i + " *");
                 System.out.println("Enter cabin class name>");
                 String cabinClassName = sc.nextLine().trim();
                 currCabinClass.setCabinClassName(cabinClassName);
-                System.out.println("Enter number of aisles");
+                System.out.println("Enter number of aisles>");
                 int numAisles = sc.nextInt();
                 currCabinClass.setNumAisles(numAisles);
-                System.out.println("Enter number of rows");
+                System.out.println("Enter number of rows>");
                 currCabinClass.setNumRows(sc.nextInt());
-                System.out.println("Enter number of seats abreast");
+                System.out.println("Enter number of seats abreast>");
                 currCabinClass.setNumSeatsAbreast(sc.nextInt());
                 sc.nextLine();
-                System.out.println("Enter actual seat configuration per column");
+                System.out.println("Enter actual seat configuration per column>");
                 currCabinClass.setActualSeatConfigPerCol(sc.nextLine());
                 currCabinClass.updateMaxSeatCapacity();
 
                 currCabinClass = cabinClassSessionBeanRemote.createCabinClass(currCabinClass);
-                totalCabinClassSeats += currCabinClass.getMaxSeatCapacity();
+
+                currentSeatCapacity += currCabinClass.getMaxSeatCapacity();
                 allCabins.add(currCabinClass);
+
             }
-            if (totalCabinClassSeats > aircraftType.getMaxSeatCapacity()) {
-                System.out.println("Exceeds aircraft type max seat capacity");
-                System.out.println("Re-enter cabin classes");
-            } else {
+            if (currentSeatCapacity <= aircraftType.getMaxSeatCapacity()) {
                 break;
+            } else {
+                allCabins.clear();
+                System.out.println("Maximum seat capacity of aircraft type is exceeded!");
+                System.out.println("Please re-enter the cabin classes.");
             }
         }
 
@@ -201,28 +201,49 @@ public class FlightPlanningModule {
         String origin = "";
         String destination = "";
 
-        System.out.println("Enter Origin Airport IATA Code>");
-        origin = sc.nextLine().trim();
-        System.out.println("Enter Destination Airport IATA Code>");
-        destination = sc.nextLine().trim();
+        while (true) {
+            System.out.println("Enter Origin Airport IATA Code>");
+            origin = sc.nextLine().trim();
+            System.out.println("Enter Destination Airport IATA Code>");
+            destination = sc.nextLine().trim();
 
-        Airport originAirport = airportSessionBeanRemote.retrieveAirportByIATACode(origin);
-        //System.out.println("hi");
-        Airport destinationAirport = airportSessionBeanRemote.retrieveAirportByIATACode(destination);
+            try {
+                Airport originAirport = airportSessionBeanRemote.retrieveAirportByIATACode(origin);
+                Airport destinationAirport = airportSessionBeanRemote.retrieveAirportByIATACode(destination);
+                FlightRoute flightRoute = new FlightRoute(originAirport, destinationAirport);
 
-        FlightRoute flightRoute = new FlightRoute(originAirport, destinationAirport);
-        flightRoute = flightRouteSessionBeanRemote.createNewFlightRoute(flightRoute);
-        System.out.println("New Flight Route " + flightRoute.getFlightRouteId() + " between " + origin + " and " + destination + "!");
-        System.out.println("Do you want to create a return route for this route? Enter Y/N");
-        String response = "";
-        response = sc.nextLine();
-        if (response.equals("Y")) {
-            FlightRoute fr = new FlightRoute(destinationAirport, originAirport);
+                if (flightRouteSessionBeanRemote.isDuplicateFlightRoute(flightRoute)) {
+                    System.out.println("Flight route with the given origin and destination already exists!");
+                } else {
+                    flightRoute = flightRouteSessionBeanRemote.createNewFlightRoute(flightRoute);
+                    System.out.println("New Flight Route " + flightRoute.getFlightRouteId() + " between " + origin + " and " + destination + "!");
 
-            fr = flightRouteSessionBeanRemote.createNewFlightRoute(fr);
+                    if (flightRouteSessionBeanRemote.hasReturnFlightRoute(flightRoute) == null) {
+                        System.out.println("Do you want to create a return route for this route? Enter Y/N");
+                        String response = "";
+                        System.out.print("> ");
+                        response = sc.nextLine();
+                        if (response.equals("Y")) {
+                            FlightRoute fr = new FlightRoute(destinationAirport, originAirport);
+//                    if (flightRouteSessionBeanRemote.isDuplicateFlightRoute(fr)) {
+//                        System.out.println("Return flight route with the given origin and destination already exists!");
+//                    }
+                            fr.setIsReturn(true);
+                            fr = flightRouteSessionBeanRemote.createNewFlightRoute(fr);
+                            flightRouteSessionBeanRemote.setReturnRoute(flightRoute, fr);
+                            System.out.println("Return Flight Route " + fr.getFlightRouteId() + " created successfully!");
+                        }
+                    } else {
+                        System.out.println("Return flight route with given origin and destination already exists!");
+                        flightRouteSessionBeanRemote.setReturnRoute(flightRoute, flightRouteSessionBeanRemote.hasReturnFlightRoute(flightRoute));
+                    }
 
-            flightRouteSessionBeanRemote.setReturnRoute(flightRoute, fr);
-            System.out.println("Return Flight Route " + fr.getFlightRouteId() + " created successfully!");
+                    break;
+                }
+            } catch (AirportNotFoundException ex) {
+                System.out.println(ex.getMessage());
+            }
+
         }
     }
 
@@ -240,10 +261,18 @@ public class FlightPlanningModule {
 
     void deleteFlightRoute() {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Enter Flight Route id");
-        Long response = sc.nextLong();
-        flightRouteSessionBeanRemote.deleteFlightRoute(response);
-        System.out.println("Flight route " + response + " deleted successfully!");
+        System.out.print("Enter Origin Airport IATA Code> ");
+        String originCode = sc.nextLine().trim();
+        System.out.print("Enter Destination Airport IATA Code> ");
+        String destinationCode = sc.nextLine().trim();
+
+        try {
+            flightRouteSessionBeanRemote.deleteFlightRoute(originCode, destinationCode);
+            System.out.println("Flight route " + originCode + " --> " + destinationCode + " deleted successfully!");
+        } catch (FlightRouteNotFoundException ex) {
+            System.out.println(ex.getMessage());
+        }
+
     }
 
 }

@@ -5,9 +5,12 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -39,13 +42,15 @@ public class AircraftType implements Serializable {
     @Max(1000)
     private int maxSeatCapacity;
     
-    @OneToMany(mappedBy = "aircraftType")
+    @OneToMany(mappedBy = "aircraftType", cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private List<AircraftConfig> aircraftConfigs;
 
     public AircraftType() {
+        this.aircraftConfigs = new ArrayList<>();
     }
 
     public AircraftType(String aircraftTypeName, int maxSeatCapacity) {
+        this();
         this.aircraftTypeName = aircraftTypeName;
         this.maxSeatCapacity = maxSeatCapacity;
     }

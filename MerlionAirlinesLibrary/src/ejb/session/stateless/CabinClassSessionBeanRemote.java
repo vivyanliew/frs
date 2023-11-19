@@ -14,4 +14,6 @@ import javax.ejb.Remote;
 @Remote
 public interface CabinClassSessionBeanRemote {
     public CabinClass createCabinClass(CabinClass cabinClass);
+
+    public String retrieveCabinClassName(Long cabinClassId);
 }

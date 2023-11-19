@@ -6,6 +6,8 @@ package ejb.session.stateless;
 
 import entity.Airport;
 import javax.ejb.Remote;
+import javax.persistence.NoResultException;
+import util.exception.AirportNotFoundException;
 
 /**
  *
@@ -14,5 +16,5 @@ import javax.ejb.Remote;
 @Remote
 public interface AirportSessionBeanRemote {
     public Airport createNewAirport(Airport airport);
-    public Airport retrieveAirportByIATACode(String code);
+   public Airport retrieveAirportByIATACode(String code)  throws AirportNotFoundException;
 }

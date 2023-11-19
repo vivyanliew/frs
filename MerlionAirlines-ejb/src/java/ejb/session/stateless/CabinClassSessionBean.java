@@ -27,4 +27,9 @@ public class CabinClassSessionBean implements CabinClassSessionBeanRemote, Cabin
         em.flush();
         return cabinClass;
     }
+    @Override
+     public String retrieveCabinClassName(Long cabinClassId) {
+        CabinClass cc = em.find(CabinClass.class, cabinClassId);
+        return cc.getCabinClassName();
+    }
 }

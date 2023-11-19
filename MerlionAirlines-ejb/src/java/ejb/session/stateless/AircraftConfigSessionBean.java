@@ -5,6 +5,7 @@
 package ejb.session.stateless;
 
 import entity.AircraftConfig;
+import entity.AircraftType;
 import entity.CabinClass;
 import java.util.List;
 import javax.ejb.Stateless;
@@ -27,6 +28,12 @@ public class AircraftConfigSessionBean implements AircraftConfigSessionBeanRemot
     @Override
     public AircraftConfig createNewAircraftConfig(AircraftConfig aircraftConfig) {
         em.persist(aircraftConfig);
+        aircraftConfig.updateMaxSeatCapacity();
+        AircraftType at = em.find(AircraftType.class, aircraftConfig.getAircraftType().getAircraftTypeId());
+        at.getAircraftConfigs().add(aircraftConfig);
+        
+        //idk if this works
+        //em.merge(at);
         em.flush();
         return aircraftConfig;
     }
