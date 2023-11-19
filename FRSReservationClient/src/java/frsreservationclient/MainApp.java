@@ -10,6 +10,7 @@ import ejb.session.stateless.FlightReservationSessionBeanRemote;
 import ejb.session.stateless.FlightSchedulePlanSessionBeanRemote;
 import ejb.session.stateless.FlightScheduleSessionBeanRemote;
 import ejb.session.stateless.FlightSessionBeanRemote;
+import ejb.session.stateless.PassengerSessionBeanRemote;
 import ejb.session.stateless.SeatInventorySessionBeanRemote;
 import entity.Airport;
 import entity.CabinClass;
@@ -51,11 +52,12 @@ public class MainApp {
     private FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote;
     private SeatInventorySessionBeanRemote seatInventorySessionBeanRemote;
     private FlightReservationSessionBeanRemote flightReservationSessionBeanRemote;
+    private PassengerSessionBeanRemote passengerSessionBeanRemote;
 
     public MainApp() {
     }
 
-    public MainApp(CustomerSessionBeanRemote customerSessionBeanRemote, AirportSessionBeanRemote airportSessionBeanRemote, FlightSessionBeanRemote flightSessionBeanRemote, FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote, FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote, SeatInventorySessionBeanRemote seatInventorySessionBeanRemote, FlightReservationSessionBeanRemote flightReservationSessionBeanRemote) {
+    public MainApp(CustomerSessionBeanRemote customerSessionBeanRemote, AirportSessionBeanRemote airportSessionBeanRemote, FlightSessionBeanRemote flightSessionBeanRemote, FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote, FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote, SeatInventorySessionBeanRemote seatInventorySessionBeanRemote, FlightReservationSessionBeanRemote flightReservationSessionBeanRemote, PassengerSessionBeanRemote passengerSessionBeanRemote) {
         this();
         this.customerSessionBeanRemote = customerSessionBeanRemote;
         this.airportSessionBeanRemote = airportSessionBeanRemote;
@@ -64,6 +66,7 @@ public class MainApp {
         this.flightScheduleSessionBeanRemote = flightScheduleSessionBeanRemote;
         this.seatInventorySessionBeanRemote = seatInventorySessionBeanRemote;
         this.flightReservationSessionBeanRemote = flightReservationSessionBeanRemote;
+        this.passengerSessionBeanRemote = passengerSessionBeanRemote;
     }
 
     public void runApp() throws FlightScheduleNotFoundException {
@@ -110,20 +113,28 @@ public class MainApp {
             System.out.println("Press Y to continue");
             sc.nextLine();
             toContinue = sc.nextLine();
-            if (toContinue.equals("Y") || toContinue.equals("y")) {
-                loggedIn = false;
-            } else {
+            
+            if (toContinue.equalsIgnoreCase("y")) {
                 loggedIn = true;
+                customerHomePage();
+            } else {
+                doLogOut();
             }
+//            if (toContinue.equals("Y") || toContinue.equals("y")) {
+//                loggedIn = false;
+//            } else {
+//                loggedIn = true;
+//            }
         }
     }
+    void doLogOut(){}
 
     void customerHomePage() {
         Scanner sc = new Scanner(System.in);
         Integer response = 0;
         while (loggedIn) {
             System.out.println("***Welcome to Merlion Airlines FRS Reservation***");
-            System.out.println("You are currently logged as " + currentCustomer.getFirstName());
+            System.out.println("You are currently logged in as " + currentCustomer.getFirstName());
             System.out.println("*** What would you like to do ***");
             System.out.println("1: Reserve Flight");
             System.out.println("2: View My Flight Reservations");
@@ -519,6 +530,24 @@ public class MainApp {
             FlightReservation outbound1Reservation;
             List<String> outbound1SeatSelection;
 
+            FlightSchedule outbound2FlightSchedule;
+            CabinClass outbound2Seats;
+            Fare outbound2Fare;
+            FlightReservation outbound2Reservation;
+            List<String> outbound2SeatSelection;
+
+            FlightSchedule inbound1FlightSchedule;
+            CabinClass inbound1Seats;
+            Fare inbound1Fare;
+            FlightReservation inbound1Reservation;
+            List<String> inbound1SeatSelection;
+
+            FlightSchedule inbound2FlightSchedule;
+            CabinClass inbound2Seats;
+            Fare inbound2Fare;
+            FlightReservation inbound2Reservation;
+            List<String> inbound2SeatSelection;
+
             BigDecimal pricePerPax;
 
             if (ob2 == null && ib1 == null && ib2 == null) { //one way direct
@@ -557,9 +586,250 @@ public class MainApp {
                 }
 
                 outbound1Reservation.setCustomer(currentCustomer);
+                
                 outbound1Reservation.setCabinClasses(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
-                outbound1Reservation.getFlightSchedules().add(outbound1FlightSchedule);
-                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation);
+                //outbound1Reservation.getFlightSchedules().add(outbound1FlightSchedule);
+                List<Long> flightSchedulesId = new ArrayList<>();
+                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
+                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation, flightSchedulesId);
+                for (Passenger p:passengers) {
+                    passengerSessionBeanRemote.createPassenger(p,outbound1Reservation.getFlightReservationId());
+                }
+                outbound1Reservation.setPassengers(passengers);
+                
+                //outbound1FlightSchedule.getFlightReservations().add(outbound1Reservation);
+                System.out.println("Flight reservation " + outbound1Reservation.getFlightReservationId() + " created successfully");
+
+            } else if (ob2 == null && ib2 == null) { //return direct
+                outbound1FlightSchedule = flightScheduleSessionBeanRemote.retrieveFlightScheduleById(ob1);
+
+                System.out.println("Seat Selection for outbound flight " + outbound1FlightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber());
+                if (cabinClassPref.equals("A")) {
+                    outbound1Seats = chooseCabinClass(outbound1FlightSchedule); //choose cabin class
+                } else {
+                    outbound1Seats = flightScheduleSessionBeanRemote.getCorrectCabinClass(outbound1FlightSchedule, cabinClassPref);
+                }
+                outbound1Fare = flightScheduleSessionBeanRemote.getSmallestFare(outbound1FlightSchedule, outbound1Seats.getCabinClassName());
+                outbound1SeatSelection = getSeatBookings(outbound1FlightSchedule.getSeatInventory(), outbound1Seats.getCabinClassName(), numberOfPassengers);
+
+                outbound1Reservation = new FlightReservation();
+                outbound1Reservation.getFareBasisCode().add(outbound1Fare.getFareBasisCode());
+                outbound1Reservation.getFareAmount().add(outbound1Fare.getFareAmount());
+
+                inbound1FlightSchedule = flightScheduleSessionBeanRemote.retrieveFlightScheduleById(ib1);
+                System.out.println("Seat Selection for inbound flight " + inbound1FlightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber());
+                if (cabinClassPref.equals("A")) {
+                    inbound1Seats = chooseCabinClass(inbound1FlightSchedule); //choose cabin class
+                } else {
+                    inbound1Seats = flightScheduleSessionBeanRemote.getCorrectCabinClass(inbound1FlightSchedule, cabinClassPref);
+                }
+                inbound1Fare = flightScheduleSessionBeanRemote.getSmallestFare(inbound1FlightSchedule, inbound1Seats.getCabinClassName());
+                inbound1SeatSelection = getSeatBookings(inbound1FlightSchedule.getSeatInventory(), inbound1Seats.getCabinClassName(), numberOfPassengers);
+
+                //inbound1Reservation = new FlightReservation();
+                outbound1Reservation.getFareBasisCode().add(inbound1Fare.getFareBasisCode());
+                outbound1Reservation.getFareAmount().add(inbound1Fare.getFareAmount());
+
+                pricePerPax = outbound1Fare.getFareAmount().add(inbound1Fare.getFareAmount());
+                System.out.println("Price per person : $" + pricePerPax.toString() + "\nTotal Amount : $" + pricePerPax.multiply(new BigDecimal(numberOfPassengers)));
+
+                System.out.print("Enter Credit Card Number> ");
+                String creditCardNum = sc.nextLine().trim();
+                System.out.print("Enter cvv> ");
+                int cvv = sc.nextInt();
+                sc.nextLine();
+                System.out.print("Enter Credit Card Expiry Date> ");
+                String creditCardExpiry = sc.nextLine().trim();
+
+                outbound1Reservation.setCcExpiryDate(creditCardExpiry);
+                outbound1Reservation.setCcNum(creditCardNum);
+                outbound1Reservation.setCvv(cvv);
+                outbound1Reservation.setCustomer(currentCustomer);
+
+                List<Passenger> passengers = obtainPassengerDetails(numberOfPassengers);
+                for (int i = 0; i < passengers.size(); i++) {
+                    passengers.get(i).getSeats().add(outbound1SeatSelection.get(i));
+                    passengers.get(i).setFlightReservations(outbound1Reservation);
+                }
+                for (int i = 0; i < passengers.size(); i++) {
+                    passengers.get(i).getSeats().add(inbound1SeatSelection.get(i));
+                    //passengers.get(i).setFlightReservations(outbound1Reservation);
+                }
+                
+
+                List<Long> flightSchedulesId = new ArrayList<>();
+                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
+                flightSchedulesId.add(inbound1FlightSchedule.getFlightScheduleId());
+                outbound1Reservation.getCabinClasses().addAll(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+                outbound1Reservation.getCabinClasses().addAll(inbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation, flightSchedulesId);
+                for (Passenger p:passengers) {
+                    passengerSessionBeanRemote.createPassenger(p,outbound1Reservation.getFlightReservationId());
+                }
+                outbound1Reservation.setPassengers(passengers);
+                System.out.println("Flight reservation " + outbound1Reservation.getFlightReservationId() + " created successfully");
+
+            } else if (ib1 == null && ib2 == null) { //one-way connecting
+                outbound1FlightSchedule = flightScheduleSessionBeanRemote.retrieveFlightScheduleById(ob1);
+
+                System.out.println("Seat Selection for outbound flight " + outbound1FlightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber());
+                if (cabinClassPref.equals("A")) {
+                    outbound1Seats = chooseCabinClass(outbound1FlightSchedule); //choose cabin class
+                } else {
+                    outbound1Seats = flightScheduleSessionBeanRemote.getCorrectCabinClass(outbound1FlightSchedule, cabinClassPref);
+                }
+                outbound1Fare = flightScheduleSessionBeanRemote.getSmallestFare(outbound1FlightSchedule, outbound1Seats.getCabinClassName());
+                outbound1SeatSelection = getSeatBookings(outbound1FlightSchedule.getSeatInventory(), outbound1Seats.getCabinClassName(), numberOfPassengers);
+
+                outbound1Reservation = new FlightReservation();
+                outbound1Reservation.getFareBasisCode().add(outbound1Fare.getFareBasisCode());
+                outbound1Reservation.getFareAmount().add(outbound1Fare.getFareAmount());
+
+                outbound2FlightSchedule = flightScheduleSessionBeanRemote.retrieveFlightScheduleById(ob2);
+                System.out.println("Seat Selection for outbound flight " + outbound2FlightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber());
+                if (cabinClassPref.equals("A")) {
+                    outbound2Seats = chooseCabinClass(outbound2FlightSchedule); //choose cabin class
+                } else {
+                    outbound2Seats = flightScheduleSessionBeanRemote.getCorrectCabinClass(outbound2FlightSchedule, cabinClassPref);
+                }
+                outbound2Fare = flightScheduleSessionBeanRemote.getSmallestFare(outbound2FlightSchedule, outbound2Seats.getCabinClassName());
+                outbound2SeatSelection = getSeatBookings(outbound2FlightSchedule.getSeatInventory(), outbound2Seats.getCabinClassName(), numberOfPassengers);
+
+                outbound1Reservation.getFareBasisCode().add(outbound2Fare.getFareBasisCode());
+                outbound1Reservation.getFareAmount().add(outbound2Fare.getFareAmount());
+
+                pricePerPax = outbound1Fare.getFareAmount().add(outbound2Fare.getFareAmount());
+                System.out.println("Price per person : $" + pricePerPax.toString() + "\nTotal Amount : $" + pricePerPax.multiply(new BigDecimal(numberOfPassengers)));
+
+                System.out.print("Enter Credit Card Number> ");
+                String creditCardNum = sc.nextLine().trim();
+                System.out.print("Enter cvv> ");
+                int cvv = sc.nextInt();
+                sc.nextLine();
+                System.out.print("Enter Credit Card Expiry Date> ");
+                String creditCardExpiry = sc.nextLine().trim();
+
+                outbound1Reservation.setCcExpiryDate(creditCardExpiry);
+                outbound1Reservation.setCcNum(creditCardNum);
+                outbound1Reservation.setCvv(cvv);
+                outbound1Reservation.setCustomer(currentCustomer);
+
+                List<Passenger> passengers = obtainPassengerDetails(numberOfPassengers);
+                for (int i = 0; i < passengers.size(); i++) {
+                    passengers.get(i).getSeats().add(outbound1SeatSelection.get(i));
+                    passengers.get(i).setFlightReservations(outbound1Reservation);
+                }
+                for (int i = 0; i < passengers.size(); i++) {
+                    passengers.get(i).getSeats().add(outbound2SeatSelection.get(i));
+                    //passengers.get(i).setFlightReservations(outbound1Reservation);
+                }
+                outbound1Reservation.setPassengers(passengers);
+                List<Long> flightSchedulesId = new ArrayList<>();
+                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
+                flightSchedulesId.add(outbound2FlightSchedule.getFlightScheduleId());
+                outbound1Reservation.getCabinClasses().addAll(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+                outbound1Reservation.getCabinClasses().addAll(outbound2FlightSchedule.getSeatInventory().getAllCabinClasses());
+                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation, flightSchedulesId);
+                System.out.println("Flight reservation " + outbound1Reservation.getFlightReservationId() + " created successfully");
+
+            } else { //return connecting
+                outbound1FlightSchedule = flightScheduleSessionBeanRemote.retrieveFlightScheduleById(ob1);
+
+                System.out.println("Seat Selection for outbound flight " + outbound1FlightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber());
+                if (cabinClassPref.equals("A")) {
+                    outbound1Seats = chooseCabinClass(outbound1FlightSchedule); //choose cabin class
+                } else {
+                    outbound1Seats = flightScheduleSessionBeanRemote.getCorrectCabinClass(outbound1FlightSchedule, cabinClassPref);
+                }
+                outbound1Fare = flightScheduleSessionBeanRemote.getSmallestFare(outbound1FlightSchedule, outbound1Seats.getCabinClassName());
+                outbound1SeatSelection = getSeatBookings(outbound1FlightSchedule.getSeatInventory(), outbound1Seats.getCabinClassName(), numberOfPassengers);
+
+                outbound1Reservation = new FlightReservation();
+                outbound1Reservation.getFareBasisCode().add(outbound1Fare.getFareBasisCode());
+                outbound1Reservation.getFareAmount().add(outbound1Fare.getFareAmount());
+
+                outbound2FlightSchedule = flightScheduleSessionBeanRemote.retrieveFlightScheduleById(ob2);
+                System.out.println("Seat Selection for outbound flight " + outbound2FlightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber());
+                if (cabinClassPref.equals("A")) {
+                    outbound2Seats = chooseCabinClass(outbound2FlightSchedule); //choose cabin class
+                } else {
+                    outbound2Seats = flightScheduleSessionBeanRemote.getCorrectCabinClass(outbound2FlightSchedule, cabinClassPref);
+                }
+                outbound2Fare = flightScheduleSessionBeanRemote.getSmallestFare(outbound2FlightSchedule, outbound2Seats.getCabinClassName());
+                outbound2SeatSelection = getSeatBookings(outbound2FlightSchedule.getSeatInventory(), outbound2Seats.getCabinClassName(), numberOfPassengers);
+
+                outbound1Reservation.getFareBasisCode().add(outbound2Fare.getFareBasisCode());
+                outbound1Reservation.getFareAmount().add(outbound2Fare.getFareAmount());
+
+                inbound1FlightSchedule = flightScheduleSessionBeanRemote.retrieveFlightScheduleById(ib1);
+                System.out.println("Seat Selection for inbound flight " + inbound1FlightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber());
+                if (cabinClassPref.equals("A")) {
+                    inbound1Seats = chooseCabinClass(inbound1FlightSchedule); //choose cabin class
+                } else {
+                    inbound1Seats = flightScheduleSessionBeanRemote.getCorrectCabinClass(inbound1FlightSchedule, cabinClassPref);
+                }
+                inbound1Fare = flightScheduleSessionBeanRemote.getSmallestFare(inbound1FlightSchedule, inbound1Seats.getCabinClassName());
+                inbound1SeatSelection = getSeatBookings(inbound1FlightSchedule.getSeatInventory(), inbound1Seats.getCabinClassName(), numberOfPassengers);
+
+                outbound1Reservation.getFareBasisCode().add(inbound1Fare.getFareBasisCode());
+                outbound1Reservation.getFareAmount().add(inbound1Fare.getFareAmount());
+
+                inbound2FlightSchedule = flightScheduleSessionBeanRemote.retrieveFlightScheduleById(ib2);
+                System.out.println("Seat Selection for inbound flight " + inbound2FlightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber());
+                if (cabinClassPref.equals("A")) {
+                    inbound2Seats = chooseCabinClass(inbound2FlightSchedule); //choose cabin class
+                } else {
+                    inbound2Seats = flightScheduleSessionBeanRemote.getCorrectCabinClass(inbound2FlightSchedule, cabinClassPref);
+                }
+                inbound2Fare = flightScheduleSessionBeanRemote.getSmallestFare(inbound2FlightSchedule, inbound2Seats.getCabinClassName());
+                inbound2SeatSelection = getSeatBookings(inbound2FlightSchedule.getSeatInventory(), inbound2Seats.getCabinClassName(), numberOfPassengers);
+
+                outbound1Reservation.getFareBasisCode().add(inbound2Fare.getFareBasisCode());
+                outbound1Reservation.getFareAmount().add(inbound2Fare.getFareAmount());
+
+                pricePerPax = outbound1Fare.getFareAmount().add(outbound2Fare.getFareAmount()).add(inbound1Fare.getFareAmount()).add(inbound2Fare.getFareAmount());
+                System.out.println("Price per person : $" + pricePerPax.toString() + "\nTotal Amount : $" + pricePerPax.multiply(new BigDecimal(numberOfPassengers)));
+
+                System.out.print("Enter Credit Card Number> ");
+                String creditCardNum = sc.nextLine().trim();
+                System.out.print("Enter cvv> ");
+                int cvv = sc.nextInt();
+                sc.nextLine();
+                System.out.print("Enter Credit Card Expiry Date> ");
+                String creditCardExpiry = sc.nextLine().trim();
+
+                outbound1Reservation.setCcExpiryDate(creditCardExpiry);
+                outbound1Reservation.setCcNum(creditCardNum);
+                outbound1Reservation.setCvv(cvv);
+                outbound1Reservation.setCustomer(currentCustomer);
+
+                List<Passenger> passengers = obtainPassengerDetails(numberOfPassengers);
+                for (int i = 0; i < passengers.size(); i++) {
+                    passengers.get(i).getSeats().add(outbound1SeatSelection.get(i));
+                    passengers.get(i).setFlightReservations(outbound1Reservation);
+                }
+                for (int i = 0; i < passengers.size(); i++) {
+                    passengers.get(i).getSeats().add(outbound2SeatSelection.get(i));
+                }
+                for (int i = 0; i < passengers.size(); i++) {
+                    passengers.get(i).getSeats().add(inbound1SeatSelection.get(i));
+                }
+                for (int i = 0; i < passengers.size(); i++) {
+                    passengers.get(i).getSeats().add(inbound2SeatSelection.get(i));
+                }
+                outbound1Reservation.setPassengers(passengers);
+                List<Long> flightSchedulesId = new ArrayList<>();
+                flightSchedulesId.add(outbound1FlightSchedule.getFlightScheduleId());
+                flightSchedulesId.add(outbound2FlightSchedule.getFlightScheduleId());
+                flightSchedulesId.add(inbound1FlightSchedule.getFlightScheduleId());
+                flightSchedulesId.add(inbound2FlightSchedule.getFlightScheduleId());
+                outbound1Reservation.getCabinClasses().addAll(outbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+                outbound1Reservation.getCabinClasses().addAll(outbound2FlightSchedule.getSeatInventory().getAllCabinClasses());
+                 outbound1Reservation.getCabinClasses().addAll(inbound1FlightSchedule.getSeatInventory().getAllCabinClasses());
+                outbound1Reservation.getCabinClasses().addAll(inbound2FlightSchedule.getSeatInventory().getAllCabinClasses());
+                outbound1Reservation = flightReservationSessionBeanRemote.createReservation(outbound1Reservation, flightSchedulesId);
+                
+                
                 System.out.println("Flight reservation " + outbound1Reservation.getFlightReservationId() + " created successfully");
 
             }
@@ -582,7 +852,9 @@ public class MainApp {
             String lastName = sc.nextLine().trim();
             System.out.print("Enter passenger " + (i) + " passport number> ");
             String passport = sc.nextLine().trim();
-            passengers.add(new Passenger(firstName, lastName, passport));
+            Passenger newPassenger = new Passenger(firstName, lastName, passport);
+            //newPassenger = passengerSessionBeanRemote.createPassenger(newPassenger);
+            passengers.add(newPassenger);
         }
         return passengers;
     }
@@ -600,7 +872,7 @@ public class MainApp {
                 id = i;
             }
         }
-        
+
         int numOfAvailableSeats = availableSeats.get(id).size();
         List<String> avail = availableSeats.get(id);
         int numOfReservedSeats = reservedSeats.get(id).size();
@@ -609,7 +881,7 @@ public class MainApp {
         List<String> balanced = balanceSeats.get(id);
 
         String type = "";
-        
+
         if (cabinClasses.get(id).getCabinClassName().equals("F")) {
             type = "First Class";
         } else if (cabinClasses.get(id).getCabinClassName().equals("J")) {

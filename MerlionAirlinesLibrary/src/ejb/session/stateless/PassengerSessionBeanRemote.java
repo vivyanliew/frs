@@ -4,8 +4,7 @@
  */
 package ejb.session.stateless;
 
-import entity.FlightReservation;
-import java.util.List;
+import entity.Passenger;
 import javax.ejb.Remote;
 
 /**
@@ -13,7 +12,6 @@ import javax.ejb.Remote;
  * @author liewvivyan
  */
 @Remote
-public interface FlightReservationSessionBeanRemote {
-   public FlightReservation createReservation(FlightReservation reservation, List<Long> flightScheduleIds);
-
+public interface PassengerSessionBeanRemote {
+       public Passenger createPassenger(Passenger passenger, Long reservationId);
 }

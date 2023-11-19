@@ -10,6 +10,7 @@ import ejb.session.stateless.FlightReservationSessionBeanRemote;
 import ejb.session.stateless.FlightSchedulePlanSessionBeanRemote;
 import ejb.session.stateless.FlightScheduleSessionBeanRemote;
 import ejb.session.stateless.FlightSessionBeanRemote;
+import ejb.session.stateless.PassengerSessionBeanRemote;
 import ejb.session.stateless.SeatInventorySessionBeanRemote;
 import javax.ejb.EJB;
 import util.exception.FlightScheduleNotFoundException;
@@ -19,6 +20,9 @@ import util.exception.FlightScheduleNotFoundException;
  * @author liewvivyan
  */
 public class Main {
+
+    @EJB(name = "PassengerSessionBeanRemote")
+    private static PassengerSessionBeanRemote passengerSessionBeanRemote;
 
     @EJB(name = "FlightReservationSessionBeanRemote")
     private static FlightReservationSessionBeanRemote flightReservationSessionBeanRemote;
@@ -46,7 +50,7 @@ public class Main {
      */
     public static void main(String[] args) throws FlightScheduleNotFoundException {
         // TODO code application logic here
-        MainApp mainApp = new MainApp(customerSessionBeanRemote,airportSessionBeanRemote,flightSessionBeanRemote,flightSchedulePlanSessionBeanRemote,flightScheduleSessionBeanRemote,seatInventorySessionBeanRemote,flightReservationSessionBeanRemote);
+        MainApp mainApp = new MainApp(customerSessionBeanRemote,airportSessionBeanRemote,flightSessionBeanRemote,flightSchedulePlanSessionBeanRemote,flightScheduleSessionBeanRemote,seatInventorySessionBeanRemote,flightReservationSessionBeanRemote,passengerSessionBeanRemote);
         mainApp.runApp();
     }
     

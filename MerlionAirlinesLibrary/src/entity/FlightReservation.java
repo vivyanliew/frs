@@ -46,8 +46,9 @@ public class FlightReservation implements Serializable {
     private String ccExpiryDate;
     @Column(nullable = false)
     private int cvv;
-    
+    @Column
     private List<BigDecimal> fareAmount;
+    @Column
     private List<String> fareBasisCode;
     
     public FlightReservation() {
