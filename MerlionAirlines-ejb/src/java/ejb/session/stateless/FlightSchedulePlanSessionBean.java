@@ -18,9 +18,11 @@ import java.util.Collections;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import util.exception.ClashingScheduleException;
+import util.exception.FlightSchedulePlanNotFoundException;
 
 /**
  *
@@ -90,6 +92,7 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         mainFSP.setLayoverHours(layoverHours);
         FlightSchedulePlan returnFSP = new FlightSchedulePlan();
         returnFSP.setFlightSchedulePlanType(mainFSP.getFlightSchedulePlanType());
+        returnFSP.setFares(main.getFares());
         em.persist(returnFSP);
         createReturnFlightSchedules(mainFSP, returnFSP);
         returnFSP.setIsReturn(true);
@@ -104,7 +107,7 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
     }
 
     private void createReturnFlightSchedules(FlightSchedulePlan mainFSP, FlightSchedulePlan returnFSP) {
-         mainFSP = em.find(FlightSchedulePlan.class, mainFSP.getFlightSchedulePlanId());
+        mainFSP = em.find(FlightSchedulePlan.class, mainFSP.getFlightSchedulePlanId());
         int numFS = mainFSP.getFlightSchedules().size();
         for (int i = 0; i < numFS; i++) {
             LocalDateTime returnDepart = mainFSP.getFlightSchedules().get(i).getArrivalDateTime().plusHours(mainFSP.getLayoverHours());
@@ -159,13 +162,56 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         }
         return seatInventory;
     }
+    @Override
+    public void addAFare(FlightSchedulePlan fsp, Fare fare) {
+        em.persist(fare);
+        fare.getCabinClass().getFares().add(fare);
+        FlightSchedulePlan flightSchedulePlan = em.find(FlightSchedulePlan.class, fsp.getFlightSchedulePlanId());
+        flightSchedulePlan.getFares().add(fare);
+        em.flush();
+    }
+    @Override
+     public boolean hasMoreThanOneFare(FlightSchedulePlan fsp, CabinClass cc) {
+        List<Fare> fares = fsp.getFares();
+        int count = 0;
+        for (Fare f : fares) {
+            if (f.getCabinClass().getCabinClassName().equals(cc.getCabinClassName())) {
+                count++;
+            }
+        }
+        if (count == 1) {
+            return false;
+        }
+        return true;
+    }
+    @Override
+      public void removeFare(FlightSchedulePlan fsp, Long fareId) {
+        FlightSchedulePlan flightSchedulePlan = em.find(FlightSchedulePlan.class, fsp.getFlightSchedulePlanId());
+        Fare fare = em.find(Fare.class, fareId);
+        flightSchedulePlan.getFares().remove(fare);
+        fare.getCabinClass().getFares().remove(fare);
+        em.remove(fare);
+    }
+    @Override
+      public boolean removeFlightSchedule(FlightSchedulePlan fsp, Long fsId) {
+        FlightSchedulePlan flightSchedulePlan = em.find(FlightSchedulePlan.class, fsp.getFlightSchedulePlanId());
+        FlightSchedule flightSchedule = em.find(FlightSchedule.class, fsId);
+        if (flightSchedule.getFlightReservations().size() != 0) {
+            return false;
+        } else {
+            flightSchedulePlan.getFlightSchedules().remove(flightSchedule);
+            em.remove(flightSchedule.getSeatInventory());
+            em.remove(flightSchedule);
+            return true;
+        }
+    }
 
     @Override
     public List<FlightSchedulePlan> viewAllFlightSchedulePlans() {
-        String jpql = "SELECT fsp FROM FlightSchedulePlan fsp "
+        String jpql = "SELECT DISTINCT fsp FROM FlightSchedulePlan fsp "
                 + "JOIN fsp.flight f "
-                + "LEFT JOIN fsp.returnFlightSchedulePlan returnFSP "
-                + "LEFT JOIN fsp.flightSchedules fs "
+                + "LEFT JOIN FETCH fsp.returnFlightSchedulePlan returnFSP "
+                + "LEFT JOIN FETCH fsp.flightSchedules fs "
                 + "ORDER BY f.flightNumber ASC, fs.departureDateTime DESC";
 
         Query query = em.createQuery(jpql, FlightSchedulePlan.class);
@@ -186,6 +232,20 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
                 }
             }
         }
+    }
+    @Override
+    public List<FlightSchedulePlan> retrieveFlightSchedulePlansByFlight (Flight flight) {
+        Query query = em.createQuery("SELECT fsp FROM FlightSchedulePlan fsp WHERE fsp.flight = :inputFlight").setParameter("inputFlight", flight);
+        return query.getResultList();
+    } 
+    
+    @Override
+    public FlightSchedulePlan retrieveFlightSchedulePlan(Long fspId) throws FlightSchedulePlanNotFoundException {
+        FlightSchedulePlan fsp = em.find(FlightSchedulePlan.class, fspId);
+        if (fsp == null) {
+            throw new FlightSchedulePlanNotFoundException("Flight schedule plan with ID " + fspId + " is not found!");
+        }
+        return fsp;
     }
 
     @Override
@@ -223,6 +283,7 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         return query.getResultList();
     }
 
+    @Override
     public void updateFares(FlightSchedulePlan flightSchedulePlan) {
         FlightSchedulePlan fsp = em.find(FlightSchedulePlan.class, flightSchedulePlan.getFlightSchedulePlanId());
         for (Fare fare : fsp.getFares()) {

@@ -58,16 +58,17 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
     public Flight createReturnFlight(Flight mainFlight, Flight returnFlight) throws NonUniqueFlightNumException {
         Query query = em.createQuery("SELECT f FROM Flight f WHERE f.flightNumber =:input ");
         query.setParameter("input", returnFlight.getFlightNumber());
-        Flight checkReturn = (Flight) query.getSingleResult();
-        if (checkReturn == null) {
+        try {
+            Flight checkReturn = (Flight) query.getSingleResult();
+            throw new NonUniqueFlightNumException("Return flight number already exists!");
+        } catch (NoResultException e) {
             em.persist(returnFlight);
             mainFlight = em.find(Flight.class, mainFlight.getFlightId());
             mainFlight.setReturnFlight(returnFlight);
+            returnFlight.setIsReturn(true);
             FlightRoute returnRoute = em.find(FlightRoute.class, mainFlight.getFlightRoute().getReturnRoute().getFlightRouteId());
             returnRoute.getFlights().add(returnFlight);
             return returnFlight;
-        } else {
-            throw new NonUniqueFlightNumException("Flight number already exists!");
         }
 
     }
@@ -106,7 +107,7 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
     }
 
     @Override
-    public Flight retrieveFlightByFlightNumber(String inputFlightNumber) throws FlightNotFoundException {
+     public Flight retrieveFlightByFlightNumber(String inputFlightNumber) throws FlightNotFoundException {
         Query query = em.createQuery("SELECT f FROM Flight f WHERE f.flightNumber = :inputFlightNumber").setParameter("inputFlightNumber", inputFlightNumber);
         Flight output = (Flight) query.getSingleResult();
         if (output != null) {
@@ -114,8 +115,8 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
         } else {
             throw new FlightNotFoundException("Flight with the given flight number does not exist!");
         }
-
     }
+
 
     @Override
     public void updateFlightNumber(String newFlightNumber, Flight flight) throws NonUniqueFlightNumException {

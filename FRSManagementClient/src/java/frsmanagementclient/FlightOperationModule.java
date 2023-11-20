@@ -15,6 +15,7 @@ import entity.Fare;
 import entity.Flight;
 import entity.FlightRoute;
 import entity.FlightSchedule;
+import entity.FlightSchedule.FlightScheduleComparator;
 import entity.FlightSchedulePlan;
 import entity.SeatInventory;
 import java.math.BigDecimal;
@@ -30,6 +31,7 @@ import java.util.regex.Pattern;
 import util.enumeration.FlightSchedulePlanType;
 import util.exception.ClashingScheduleException;
 import util.exception.FlightNotFoundException;
+import util.exception.FlightSchedulePlanNotFoundException;
 import util.exception.NonUniqueFlightNumException;
 
 /**
@@ -81,7 +83,7 @@ public class FlightOperationModule {
                     } catch (NonUniqueFlightNumException ex) {
                         System.out.println(ex.getMessage());
                     }
-                    
+
                 } else if (response == 2) {
                     viewAllFlights();
                 } else if (response == 3) {
@@ -108,27 +110,45 @@ public class FlightOperationModule {
 
     void createFlight() throws NonUniqueFlightNumException {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Enter Flight No.>");
-        String flightNum = sc.nextLine().trim();
-        System.out.println("Select Flight Route>");
-        List<FlightRoute> allFlightRoutes = flightRouteSessionBeanRemote.retrieveAllFlightRoutes();
-        int count = 1;
-        for (FlightRoute fr : allFlightRoutes) {
-            if (!fr.isDisabled()) { 
-                System.out.println(count + ": " + fr.getOriginAirport().getIataCode() + " -> " + fr.getDestinationAirport().getIataCode());
-                count++;
+        String flightNum = "";
+        while (true) {
+            System.out.print("Enter Flight No.> ");
+            flightNum = sc.nextLine().trim();
+            try {
+                flightSessionBeanRemote.retrieveFlightByFlightNumber(flightNum);
+                System.out.println("There exists a flight with the given flight number!");
+                System.out.println("Please enter a unique flight number!");
+            } catch (FlightNotFoundException ex) {
+                break;
             }
         }
+
+        System.out.println("Select Flight Route: ");
+        List<FlightRoute> allFlightRoutes = flightRouteSessionBeanRemote.retrieveAllFlightRoutes();
+        List<FlightRoute> validRoutes = new ArrayList<>();
+        int count = 1;
+        for (FlightRoute fr : allFlightRoutes) {
+            if (!fr.isDisabled()) {
+                validRoutes.add(fr);
+            }
+        }
+        for (FlightRoute fr : validRoutes) {
+            System.out.println(count + ": " + fr.getOriginAirport().getIataCode() + " -> " + fr.getDestinationAirport().getIataCode());
+            count++;
+        }
+
+        System.out.print("> ");
         int selected = sc.nextInt();
         sc.nextLine();
-        FlightRoute route = allFlightRoutes.get(selected - 1);
-        System.out.println("Select Aircraft Configuration>");
+        FlightRoute route = validRoutes.get(selected - 1);
+        System.out.println("Select Aircraft Configuration: ");
         List<AircraftConfig> allAircraftConfigs = aircraftConfigSessionBeanRemote.getAllAircraftConfigs();
         count = 1;
         for (AircraftConfig ac : allAircraftConfigs) {
             System.out.println(count + ": " + ac.getAircraftConfigName());
             count++;
         }
+        System.out.print("> ");
         selected = sc.nextInt();
         sc.nextLine();
         AircraftConfig aircraftConfig = allAircraftConfigs.get(selected - 1);
@@ -143,7 +163,7 @@ public class FlightOperationModule {
             String response = "";
             response = sc.nextLine();
             if (response.equals("Y")) {
-                System.out.println("Enter Flight No.>");
+                System.out.print("Enter Flight No.> ");
                 String returnFlightNum = sc.nextLine().trim();
                 Flight returnFlight = new Flight(returnFlightNum, route.getReturnRoute(), aircraftConfig);
                 returnFlight.setIsReturn(true);
@@ -159,11 +179,7 @@ public class FlightOperationModule {
         int count = 1;
         for (Flight f : allFlights) {
             if (!f.isIsReturn()) {
-                if (!f.isDisabled()) {
-                    System.out.println(count + ". " + f.getFlightNumber());
-                } else {
-                    System.out.println(count + ". " + f.getFlightNumber() + " (disabled)");
-                }
+                System.out.println(count + ". " + f.getFlightNumber());
                 count++;
                 if (f.getReturnFlight() != null) {
                     System.out.println("Return Flight: " + f.getReturnFlight().getFlightNumber());
@@ -176,24 +192,54 @@ public class FlightOperationModule {
         List<FlightSchedulePlan> allPlans = flightSchedulePlanSessionBeanRemote.viewAllFlightSchedulePlans();
         System.out.println("**View All Flight Schedule Plans**");
         for (FlightSchedulePlan fsp : allPlans) {
-            displayFlightSchedulePlan(fsp);
-            if (fsp.getReturnFlightSchedulePlan() != null) {
-                displayFlightSchedulePlan(fsp.getReturnFlightSchedulePlan());
+            if (!fsp.isIsReturn()) {
+                displayFlightSchedulePlan(fsp);
+                System.out.println();
             }
+            if (fsp.getReturnFlightSchedulePlan() != null) {
+                displayReturnFlightSchedulePlan(fsp.getReturnFlightSchedulePlan());
+            }
+            System.out.println();
         }
     }
 
     private void displayFlightSchedulePlan(FlightSchedulePlan fsp) {
         System.out.println("Flight Number: " + fsp.getFlight().getFlightNumber());
-        System.out.println("Flight Schedule Plan ID: " + fsp.getFlightSchedulePlanId());
-        System.out.println("    Flight Schedules: ");
+        if (fsp.isIsDisabled()) {
+            System.out.println("Flight Schedule Plan ID: " + fsp.getFlightSchedulePlanId() + "(disabled)");
+        } else {
+            System.out.println("Flight Schedule Plan ID: " + fsp.getFlightSchedulePlanId());
+        }
+        System.out.println("Flight Schedules: ");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM u h:mm a");
 
         List<FlightSchedule> allFS = fsp.getFlightSchedules();
+        allFS.sort(new FlightScheduleComparator());
         int count = 1;
         for (FlightSchedule fs : allFS) {
             System.out.println("    " + count + ". Departure: " + fs.getDepartureDateTime().format(formatter));
+            count++;
+        }
+    }
+
+    private void displayReturnFlightSchedulePlan(FlightSchedulePlan fsp) {
+        System.out.println("    Return Flight Number: " + fsp.getFlight().getFlightNumber());
+        if (fsp.isIsDisabled()) {
+            System.out.println("    Return Flight Schedule Plan ID: " + fsp.getFlightSchedulePlanId() + "(disabled)");
+        } else {
+            System.out.println("    Return Flight Schedule Plan ID: " + fsp.getFlightSchedulePlanId());
+        }
+        System.out.println("    Return Flight Schedules: ");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM u h:mm a");
+
+        List<FlightSchedule> allFS = fsp.getFlightSchedules();
+        allFS.sort(new FlightScheduleComparator());
+        int count = 1;
+        for (FlightSchedule fs : allFS) {
+            System.out.println("        " + count + ". Departure: " + fs.getDepartureDateTime().format(formatter));
+            count++;
         }
     }
 
@@ -225,19 +271,41 @@ public class FlightOperationModule {
         }
         System.out.println();
         int response = 0;
+
         System.out.println("Select an option :");
         System.out.println("1 : Update Flight");
         System.out.println("2 : Delete Flight");
         System.out.println("3 : Exit");
-
+        System.out.print(">");
         response = sc.nextInt();
         sc.nextLine();
-        if (response == 1) {
-            updateFlight(flight);
-        } else if (response == 2) {
-            deleteFlight();
+        while (true) {
+//            System.out.print(">");
+//            response = sc.nextInt();
+//            sc.nextLine();
+
+            if (response == 1) {
+                updateFlight(flight);
+                break;
+            } else if (response == 2) {
+                deleteFlight(flight);
+                break;
+            } else if (response == 3) {
+                break;
+            }
         }
 
+    }
+
+    void deleteFlight(Flight flight) {
+        System.out.println("**Delete Flight**");
+        try {
+            flightSessionBeanRemote.deleteFlight(flight.getFlightNumber());
+        } catch (FlightNotFoundException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        System.out.println("Flight " + flight.getFlightNumber() + " deleted successfully!");
     }
 
     void updateFlight(Flight flight) {
@@ -260,12 +328,106 @@ public class FlightOperationModule {
 
     void viewFlightSchedulePlanDetails() {
         Scanner sc = new Scanner(System.in);
-        Integer response = 0;
-        System.out.println("1: Update flight schedule plan");
-        System.out.println("2: Delete flight schedule plan");
-        response = sc.nextInt();
-        if (response == 2) {
-            deleteFlightSchedulePlan();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM u h:mm a");
+
+        while (true) {
+            System.out.print("Enter Flight No. > ");
+            String flightNum = sc.nextLine().trim();
+            Flight flight;
+            while (true) {
+                try {
+                    flight = flightSessionBeanRemote.retrieveFlightByFlightNumber(flightNum);
+                    break;
+                } catch (FlightNotFoundException ex) {
+                    System.out.println(ex.getMessage());
+                    System.out.print("Please re-enter Flight No. >");
+                    flightNum = sc.nextLine().trim();
+                }
+            }
+
+            System.out.println("Select a Flight Schedule Plan: ");
+            List<FlightSchedulePlan> allFSP = flightSchedulePlanSessionBeanRemote.retrieveFlightSchedulePlansByFlight(flight);
+            int counter = 1;
+            for (FlightSchedulePlan fsp : allFSP) {
+                System.out.println("    " + counter + ". Flight Schedule Plan ID: " + fsp.getFlightSchedulePlanId());
+                counter++;
+            }
+
+            int index = -1;
+            
+            while (true) {
+                System.out.print("> ");
+                index = sc.nextInt() - 1;
+                sc.nextLine().trim();
+                if(index >=0 && index < allFSP.size()) {
+                    break;
+                } else {
+                    System.out.println("Please enter a valid number!");
+                }
+            }
+
+            FlightSchedulePlan fsp = allFSP.get(index);
+            System.out.println("*Flight Schedule Plan " + fsp.getFlightSchedulePlanId() + "*");
+            System.out.println("Type: " + fsp.getFlightSchedulePlanType().toString());
+
+            System.out.println("Origin: " + fsp.getFlight().getFlightRoute().getOriginAirport().getAirportName());
+            System.out.println("Destination: " + fsp.getFlight().getFlightRoute().getDestinationAirport().getAirportName());
+
+            System.out.println("Flight Schedules: ");
+            List<FlightSchedule> allFS = fsp.getFlightSchedules();
+            allFS.sort(new FlightScheduleComparator());
+            int count = 1;
+            for (FlightSchedule fs : allFS) {
+                System.out.println("    " + count + ". Departure: " + fs.getDepartureDateTime().format(formatter));
+                count++;
+            }
+
+            System.out.println("Fares: ");
+            List<Fare> allFares = fsp.getFares();
+            for (Fare fare : allFares) {
+                System.out.println("    " + fare.getCabinClass().getCabinClassName() + " " + fare.getFareAmount());
+            }
+
+            System.out.println("Select an option: ");
+            System.out.println("1: Update Flight Schedule Plan");
+            System.out.println("2: Delete Flight Schedule Plan");
+            System.out.println("3: Exit");
+
+            while (true) {
+                System.out.print(" >");
+                int response = sc.nextInt();
+                sc.nextLine();
+
+                if (response == 1) {
+                    updateFlightSchedulePlan(fsp);
+                    break;
+                } else if (response == 2) {
+                    deleteFlightSchedulePlan(fsp);
+                    break;
+                } else if (response == 3) {
+                    break;
+                }
+            }
+            break;
+
+        }
+    }
+
+    private void updateFlightSchedulePlan(FlightSchedulePlan fsp) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("**Update Flight Schedule Plan***");
+        System.out.println("Select an option: ");
+        System.out.println("1: Update fares");
+        System.out.println("2: Remove a flight schedule");
+        System.out.println("3: Exit");
+        System.out.print(">");
+        int response = sc.nextInt();
+        sc.nextLine().trim();
+
+        if (response == 1) {
+            updateFSPFare(fsp);
+        } else if (response == 2) {
+            removeAFlightSchedule(fsp);
         }
     }
 
@@ -282,16 +444,113 @@ public class FlightOperationModule {
         System.out.println("Flight " + response + " deleted successfully!");
     }
 
-    void deleteFlightSchedulePlan() {
+    void deleteFlightSchedulePlan(FlightSchedulePlan fsp) {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Enter Flight Schedule Plan id");
-        Long response = sc.nextLong();
-        flightSchedulePlanSessionBeanRemote.deleteFlightSchedulePlan(response);
-        System.out.println("Flight Schedule Plan " + response + " deleted successfully!");
+        System.out.println("**Delete Flight Schedule Plan**");
+        flightSchedulePlanSessionBeanRemote.deleteFlightSchedulePlan(fsp.getFlightSchedulePlanId());
+        System.out.println("Flight Schedule Plan " + fsp.getFlightSchedulePlanId() + " deleted successfully!");
+    }
+
+    private void updateFSPFare(FlightSchedulePlan fsp) {
+        Scanner sc = new Scanner(System.in);
+        int response = 0;
+
+        System.out.println("Select an option: ");
+        System.out.println("1: Add a new fare");
+        System.out.println("2: Remove a fare");
+        System.out.println("3: Exit");
+
+        while (response < 1 || response > 3) {
+            System.out.print(">");
+            response = sc.nextInt();
+            sc.nextLine().trim();
+        }
+
+        if (response == 1) {
+            addANewFare(fsp);
+        } else {
+            removeAFare(fsp);
+        }
+
+    }
+
+    private void addANewFare(FlightSchedulePlan fsp) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("*Add a New Fare*");
+        System.out.println("Select a cabin class: ");
+        int count = 1;
+        for (CabinClass cc : fsp.getFlight().getAircraftConfig().getCabinClasses()) {
+            System.out.println("    " + count + ". " + cc.getCabinClassName());
+            count++;
+        }
+        System.out.print(">");
+        int index = sc.nextInt() - 1;
+        CabinClass cabinClass = fsp.getFlight().getAircraftConfig().getCabinClasses().get(index);
+        System.out.println("Enter fare amount>");
+        sc.nextLine();
+        String fareString = sc.nextLine().trim();
+        BigDecimal fareAmount = new BigDecimal(fareString);
+        Fare fare = new Fare(fareAmount, cabinClass);
+        flightSchedulePlanSessionBeanRemote.addAFare(fsp, fare);
+        System.out.println("New fare added successfully!");
+    }
+
+    private void removeAFare(FlightSchedulePlan fsp) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("*Remove A Fare*");
+        System.out.println("Select a cabin class: ");
+        int count = 1;
+        for (CabinClass cc : fsp.getFlight().getAircraftConfig().getCabinClasses()) {
+            System.out.println("    " + count + ". " + cc.getCabinClassName());
+            count++;
+        }
+        System.out.print(">");
+        int index = sc.nextInt() - 1;
+        CabinClass cabinClass = fsp.getFlight().getAircraftConfig().getCabinClasses().get(index);
+        if (flightSchedulePlanSessionBeanRemote.hasMoreThanOneFare(fsp, cabinClass)) {
+            System.out.println("Existing Fares: ");
+            for (Fare fare : fsp.getFares()) {
+                if (fare.getCabinClass().getCabinClassName().equals(cabinClass.getCabinClassName())) {
+                    System.out.println("Fare ID: " + fare.getFareId());
+                    System.out.println("     " + fare.getCabinClass().getCabinClassName() + ", " + fare.getFareAmount().toString());
+                }
+            }
+            System.out.print("Enter fare ID for removal> ");
+            sc.nextLine();
+            String fareId = sc.nextLine().trim();
+            flightSchedulePlanSessionBeanRemote.removeFare(fsp, Long.parseLong(fareId));
+            System.out.println("Fare with fare ID " + fareId + " is removed successfully!");
+        } else {
+            System.out.println("Cabin class only has 1 existing fare! Add in a new fare before removal. ");
+        }
+    }
+
+    private void removeAFlightSchedule(FlightSchedulePlan fsp) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yy, h:mm a");
+        Scanner sc = new Scanner(System.in);
+        System.out.println("*Remove A Flight Schedule*");
+        if (fsp.getFlightSchedules().size() < 2) {
+            System.out.println("This flight schedule plan only has 1 flight schedule!");
+            System.out.println("Try deleting the entire flight schedule plan instead.");
+        } else {
+            System.out.println("Existing Flight Schedules: ");
+            for (FlightSchedule fs : fsp.getFlightSchedules()) {
+                System.out.println("Flight Schedule ID: " + fs.getFlightScheduleId());
+                System.out.println("    " + fs.getDepartureDateTime().format(formatter) + " " + fs.getArrivalDateTime().format(formatter));
+            }
+            System.out.print("Enter Flight Schedule ID for removal>");
+            String fsId = sc.nextLine().trim();
+            if (flightSchedulePlanSessionBeanRemote.removeFlightSchedule(fsp, Long.parseLong(fsId))) {
+                System.out.println("Flight schedule with ID " + fsId + " is successfully deleted!");
+            } else {
+                System.out.println("Flight reservations have already been made for the flight schedule.");
+                System.out.println("Deletion of the flight schedule is not permitted.");
+            }
+        }
     }
 
     void createFlightSchedulePlan() {
-          Scanner sc = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
         System.out.println("Enter Flight No.>");
         String flightNum = sc.nextLine().trim();
         Flight flight;
@@ -311,10 +570,11 @@ public class FlightOperationModule {
         while (true) {
             int response = 0;
             System.out.println("Select a type of schedule : ");
-            System.out.println("1 : Single schedule");
-            System.out.println("2 : Multiple schedules");
-            System.out.println("3 : Recurrent schedules every n day");
-            System.out.println("4 : Recurrent schedules every week");
+            System.out.println("1 : Single Schedule");
+            System.out.println("2 : Manual Multiple");
+            System.out.println("3 : Recurrent NDays");
+            System.out.println("4 : Recurrent Weekly");
+            System.out.print("> ");
             response = sc.nextInt();
             sc.nextLine();
 
@@ -352,16 +612,17 @@ public class FlightOperationModule {
 
         List<CabinClass> cabinClasses = flight.getAircraftConfig().getCabinClasses();
         for (CabinClass c : cabinClasses) {
-            System.out.print("Enter number of fares for Cabin Class " + c.getCabinClassName() + ">");
+            System.out.print("Enter number of fares for Cabin Class " + c.getCabinClassName() + "> ");
             int numFares = sc.nextInt();
             sc.nextLine().trim();
-            for (int i = 0; i < numFares; i++) {
-                System.out.println("Fare " + (i + 1));
-                System.out.println("Enter fare amount>");
+            for (int i = 1; i < numFares + 1; i++) {
+                System.out.println("    Fare " + i);
+                System.out.print("      Enter fare basis code> ");
+                String fareBasisCode = sc.nextLine().trim();
+                System.out.print("      Enter fare amount> ");
                 String fareString = sc.nextLine().trim();
                 BigDecimal fareAmount = new BigDecimal(fareString);
-                Fare fare = new Fare(fareAmount, c);
-                //c.getFares().add(fare);
+                Fare fare = new Fare(fareAmount, c, fareBasisCode);
                 flightSchedulePlan.getFares().add(fare);
             }
         }
@@ -371,38 +632,27 @@ public class FlightOperationModule {
 
         if (flight.getReturnFlight() != null) {
             System.out.println("Would you like to create a return flight schedule plan? (Enter Y/N)");
-            System.out.println(">");
+            System.out.print(">");
             if (sc.nextLine().trim().equals("Y")) {
                 System.out.println("Enter layover duration (in hours)");
                 int layover = sc.nextInt();
+                sc.nextLine();
                 FlightSchedulePlan returnFSP = flightSchedulePlanSessionBeanRemote.createReturnFlightSchedulePlan(flightSchedulePlan, layover);
                 List<CabinClass> returnCabinClasses = flight.getReturnFlight().getAircraftConfig().getCabinClasses();
-                for (CabinClass c : returnCabinClasses) {
-                    System.out.print("Enter number of fares for Cabin Class " + c.getCabinClassName() + ">");
-                    int numFares = sc.nextInt();
-                    sc.nextLine().trim();
-                    for (int i = 0; i < numFares; i++) {
-                        System.out.println("Fare " + (i + 1));
-                        System.out.println("Enter fare amount>");
-                        String fareString = sc.nextLine().trim();
-                        BigDecimal fareAmount = new BigDecimal(fareString);
-                        Fare fare = new Fare(fareAmount, c);
-                        //c.getFares().add(fare);
-                        returnFSP.getFares().add(fare);
-                    }
-                }
+                returnFSP.getFares().addAll(flightSchedulePlan.getFares());
                 flightSchedulePlanSessionBeanRemote.updateFares(returnFSP);
                 System.out.println("Return Flight Schedule Plan " + returnFSP.getFlightSchedulePlanId() + " is successfully created!");
             }
         }
     }
+
     FlightSchedule createFlightSchedule(Flight f) {
         Scanner sc = new Scanner(System.in);
         System.out.print("Enter departure date (d MMM yy)> ");
         String departDate = sc.nextLine();
         System.out.print("Enter departure time (HH:mm AM/PM)> ");
         String departTime = sc.nextLine();
-        System.out.print("Enter flight duration (H Hours m Minute)> ");
+        System.out.print("Enter flight duration (H Hours m Minutes)> ");
         String duration = sc.nextLine();
 
         LocalDateTime departDateTime = parseDateTime(departDate + ", " + departTime);
@@ -425,7 +675,7 @@ public class FlightOperationModule {
         String startDate = sc.nextLine();
         System.out.print("Enter end date (d MMM yy)> ");
         String endDate = sc.nextLine();
-        System.out.print("Enter flight duration (H Hours m Minute)> ");
+        System.out.print("Enter flight duration (H Hours m Minutes)> ");
         String duration = sc.nextLine();
 
         List<FlightSchedule> schedules = new ArrayList<FlightSchedule>();
@@ -445,7 +695,6 @@ public class FlightOperationModule {
 
         return schedules;
     }
-
 
     List<FlightSchedule> createRecurrentWeeklyFlightSchedule(Flight f, FlightSchedulePlan fsp) {
         Scanner sc = new Scanner(System.in);
@@ -483,6 +732,7 @@ public class FlightOperationModule {
 
         return schedules;
     }
+
     SeatInventory createSeatInventory(Flight f, FlightSchedule fs) {
         SeatInventory seatInventory = new SeatInventory();
         fs.setSeatInventory(seatInventory);
@@ -490,9 +740,9 @@ public class FlightOperationModule {
         int numCabinClasses = f.getAircraftConfig().getNumCabinClasses();
 
         seatInventory.setAvailableSeats(new ArrayList<List<String>>(numCabinClasses));
-         seatInventory.setBalanceSeats(new ArrayList<List<String>>(numCabinClasses));
+        seatInventory.setBalanceSeats(new ArrayList<List<String>>(numCabinClasses));
         seatInventory.setReservedSeats(new ArrayList<List<String>>(numCabinClasses));
-        
+
         for (int i = 0; i < numCabinClasses; i++) {
             CabinClass c = seatInventory.getAllCabinClasses().get(i);
             int numRows = c.getNumRows();
@@ -536,6 +786,7 @@ public class FlightOperationModule {
         int totalHours = hours + minutes / 60;
         return totalHours;
     }
+
     private static Duration parseDurationString(String durationString) {
         Pattern pattern = Pattern.compile("(\\d+)\\s*Hours?\\s*(\\d+)?\\s*Minutes?");
         Matcher matcher = pattern.matcher(durationString);

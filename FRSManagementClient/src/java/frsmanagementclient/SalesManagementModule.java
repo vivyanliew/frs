@@ -36,7 +36,7 @@ public class SalesManagementModule {
     public SalesManagementModule() {
     }
 
-    public SalesManagementModule(FlightSessionBeanRemote flightSessionBeanRemote) {
+    public SalesManagementModule(FlightSessionBeanRemote flightSessionBeanRemote,FlightReservationSessionBeanRemote flightReservationSessionBeanRemote ) {
         this.flightSessionBeanRemote = flightSessionBeanRemote;
          this.flightReservationSessionBeanRemote = flightReservationSessionBeanRemote;
     }
@@ -145,8 +145,8 @@ public class SalesManagementModule {
 
        void viewFlightReservations() {
         Scanner sc = new Scanner(System.in);
-        System.out.println("** View Seats Inventory **\n");
-        System.out.println("Enter flight number> ");
+        System.out.println("** View Flight Reservations **\n");
+        System.out.print("Enter flight number > ");
         String flightNum = sc.nextLine().trim();
         Flight flight;
         while (true) {
@@ -155,7 +155,7 @@ public class SalesManagementModule {
                 break;
             } catch (FlightNotFoundException ex) {
                 System.out.println(ex.getMessage());
-                System.out.println("Please re-enter Flight No.>");
+                System.out.print("Please re-enter Flight No.> ");
                 flightNum = sc.nextLine().trim();
             }
         }
@@ -180,7 +180,7 @@ public class SalesManagementModule {
             count++;
         }
 
-        System.out.println("Select a Flight Schedule>");
+        System.out.print("Select a Flight Schedule > ");
         int index = sc.nextInt() - 1;
         sc.nextLine().trim();
 

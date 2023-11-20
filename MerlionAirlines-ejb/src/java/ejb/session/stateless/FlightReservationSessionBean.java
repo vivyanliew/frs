@@ -53,8 +53,9 @@ public class FlightReservationSessionBean implements FlightReservationSessionBea
 
     }
 
+    @Override
     public List<FlightReservation> retrieveReservationsForFlightSchedule(FlightSchedule flightSchedule) throws NoFlightReservationsException {
-
+        
         flightSchedule = em.find(FlightSchedule.class, flightSchedule.getFlightScheduleId());
         TypedQuery<FlightReservation> query = em.createQuery(
                 "SELECT DISTINCT fr "
@@ -63,21 +64,21 @@ public class FlightReservationSessionBean implements FlightReservationSessionBea
                 + "WHERE fs = :flightSchedule", FlightReservation.class);
 
         query.setParameter("flightSchedule", flightSchedule);
-
+  
         List<FlightReservation> flightReservations = query.getResultList();
-
+        
         if (flightReservations.isEmpty()) {
             throw new NoFlightReservationsException();
         }
         return flightReservations;
     }
-
+    
     @Override
     public List<FlightReservation> retrieveReservationsForCustomer(Customer c) throws NoFlightReservationsException {
-
+ 
         Query query = em.createQuery("SELECT fr FROM FlightReservation fr WHERE fr.customer = :inputCustomer").setParameter("inputCustomer", c);
         List<FlightReservation> flightReservations = query.getResultList();
-
+        
         if (flightReservations.isEmpty()) {
             throw new NoFlightReservationsException();
         }

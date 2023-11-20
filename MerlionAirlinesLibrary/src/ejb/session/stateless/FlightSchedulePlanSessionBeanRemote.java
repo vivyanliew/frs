@@ -4,6 +4,8 @@
  */
 package ejb.session.stateless;
 
+import entity.CabinClass;
+import entity.Fare;
 import entity.Flight;
 import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
@@ -11,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import javax.ejb.Remote;
 import util.exception.ClashingScheduleException;
+import util.exception.FlightSchedulePlanNotFoundException;
 
 /**
  *
@@ -27,4 +30,18 @@ public interface FlightSchedulePlanSessionBeanRemote {
 
     public List<FlightSchedule> retrieveSchedulesForFlight(Flight flight);
      public List<FlightSchedule> retrieveSchedulesForFlight(Flight flight, LocalDateTime departDate);
+
+    //public FlightSchedulePlan retrieveFlightSchedulePlan(String flightNum) throws FlightSchedulePlanNotFoundException;
+
+    public void addAFare(FlightSchedulePlan fsp, Fare fare);
+
+    public boolean hasMoreThanOneFare(FlightSchedulePlan fsp, CabinClass cc);
+
+    public void removeFare(FlightSchedulePlan fsp, Long fareId);
+
+    public boolean removeFlightSchedule(FlightSchedulePlan fsp, Long fsId);
+
+    public List<FlightSchedulePlan> retrieveFlightSchedulePlansByFlight(Flight flight);
+        public FlightSchedulePlan retrieveFlightSchedulePlan(Long fspId) throws FlightSchedulePlanNotFoundException;
+
 }
