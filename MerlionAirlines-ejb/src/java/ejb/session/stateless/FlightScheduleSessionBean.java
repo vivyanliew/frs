@@ -106,8 +106,9 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
             }
         }
         if (ccFares.isEmpty()) {
-            System.out.println("No cabin class found");
+            System.out.println("No cabin class found!");
         }
+
         Fare smallest = ccFares.get(0);
         for (Fare fare : ccFares) {
             if (fare.getFareAmount().compareTo(smallest.getFareAmount()) < 0) {
@@ -117,6 +118,79 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         return smallest;
     }
 
+    @Override
+     public List<Pair<FlightSchedule, FlightSchedule>> getIndirectFlightSchedules(String departureAirportCode, String destinationAirportCode, LocalDateTime departDate, LocalDateTime returnDate, String cabinPref) throws FlightNotFoundException {
+        List<Pair<FlightSchedule, FlightSchedule>> schedule = new ArrayList<>();
+        List<Flight[]> flightPairs = flightSessionBean.retrieveAllIndirectFlightByFlightRoute(departureAirportCode, destinationAirportCode);
+
+        for (Object[] pair : flightPairs) {
+            Flight firstFlight = (Flight) pair[0];
+            Flight secondFlight = (Flight) pair[1];
+            System.out.println(firstFlight.toString());
+            System.out.println(secondFlight.toString());
+            
+            if(firstFlight.getFlightSchedulePlans().isEmpty() || secondFlight.getFlightSchedulePlans().isEmpty() ) {
+                continue;
+            }
+            
+            for (FlightSchedulePlan firstFlightPlan : firstFlight.getFlightSchedulePlans()) {
+                if (firstFlightPlan.isIsDisabled()) {
+                    continue;
+                }
+
+                for (FlightSchedule firstFlightSchedule : firstFlightPlan.getFlightSchedules()) {
+                    for (FlightSchedulePlan secondFlightPlan : secondFlight.getFlightSchedulePlans()) {
+                        if (secondFlightPlan.isIsDisabled()) {
+                            continue;
+                        }
+
+                        for (FlightSchedule secondFlightSchedule : secondFlightPlan.getFlightSchedules()) {
+                            boolean cabinClassMatch = false;
+                            boolean flight1DateMatch = false;
+                            boolean flight2DateMatch = false;
+
+                            // Check cabin preference
+                            if (cabinPref.equals("A") || cabinPreferenceMatches(firstFlightSchedule, secondFlightSchedule, cabinPref)) {
+                                cabinClassMatch = true;
+                            }
+
+                            // Check if the first flight leaves on the departure date
+                            if (isFlightOnDepartureDate(firstFlightSchedule, departDate)) {
+                                flight1DateMatch = true;
+                            }
+
+                            // Check if the second flight leaves after the first flight and before returnd ate
+                            if (isSecondFlightAfterFirst(firstFlightSchedule, secondFlightSchedule) && isSecondFlightBeforeReturn(secondFlightSchedule, returnDate)) {
+                                flight2DateMatch = true;
+                            }
+                            
+                            System.out.println("FirstFlight: " + firstFlight.toString() + " " + secondFlight.toString());
+                            System.out.println("cabin class match: " + cabinClassMatch);
+                            System.out.println(firstFlightSchedule.getDepartureDateTime());
+                            System.out.println("flight1 date match: " + flight1DateMatch);
+                            System.out.println(secondFlightSchedule.getDepartureDateTime());
+                            System.out.println("flight2 date match: " + flight2DateMatch);
+
+                            // Add to schedule if all conditions are met
+                            if (cabinClassMatch && flight1DateMatch && flight2DateMatch) {
+                                schedule.add(new Pair<>(firstFlightSchedule, secondFlightSchedule));
+                                System.out.println("got sth inside la");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Collections.sort(schedule, new FlightSchedule.IndirectFlightScheduleComparator());
+        System.out.println("size:" + schedule.size());
+        return schedule;
+    }
+     private boolean isSecondFlightBeforeReturn(FlightSchedule secondFlightSchedule, LocalDateTime returnDateTime) {
+        return secondFlightSchedule.getDepartureDateTime().isBefore(returnDateTime);
+    }
+
+    @Override
     public List<Pair<FlightSchedule, FlightSchedule>> getIndirectFlightSchedules(String departureAirportCode, String destinationAirportCode, LocalDateTime departDate, String cabinPref) throws FlightNotFoundException {
         List<Pair<FlightSchedule, FlightSchedule>> schedule = new ArrayList<>();
         List<Flight[]> flightPairs = flightSessionBean.retrieveAllIndirectFlightByFlightRoute(departureAirportCode, destinationAirportCode);

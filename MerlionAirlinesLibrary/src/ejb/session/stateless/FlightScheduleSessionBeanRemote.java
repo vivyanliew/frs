@@ -32,4 +32,6 @@ public interface FlightScheduleSessionBeanRemote {
     public CabinClass getCorrectCabinClass(FlightSchedule flightSchedule, String cabinClassName) throws FlightScheduleNotFoundException, SeatInventoryNotFoundException;
 
     public FlightSchedule retrieveFlightScheduleById(Long id) throws FlightScheduleNotFoundException;
+
+    public List<Pair<FlightSchedule, FlightSchedule>> getIndirectFlightSchedules(String departureAirportCode, String destinationAirportCode, LocalDateTime departDate, LocalDateTime returnDate, String cabinPref) throws FlightNotFoundException;
 }

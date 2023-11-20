@@ -7,7 +7,11 @@ package ejb.session.stateless;
 import entity.Partner;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import util.exception.InvalidLoginCredentialException;
+import util.exception.PartnerNotFoundException;
 
 /**
  *
@@ -25,5 +29,32 @@ public class PartnerSessionBean implements PartnerSessionBeanRemote, PartnerSess
         em.persist(partner);
         em.flush();
         return partner;
+    }
+    @Override
+   public Partner retrievePartnerByEmail(String email) throws PartnerNotFoundException {
+        Query query = em.createQuery("SELECT p from Partner p WHERE p.email = :inputEmail");
+        query.setParameter("inputEmail", email);
+        
+        try {
+            return (Partner) query.getSingleResult();
+        } catch(NoResultException ex) {
+            throw new PartnerNotFoundException("The given email is not registered with a partner account!");
+        }
+        
+    }
+    @Override
+    public Long partnerLogin(String email, String password) throws InvalidLoginCredentialException {
+        
+        try {
+            Partner partner = retrievePartnerByEmail(email);
+        
+            if(partner.getPassword().equals(password)) {
+                return partner.getPartnerId();
+            } else {
+                throw new InvalidLoginCredentialException("Wrong password!");
+            }
+        } catch(PartnerNotFoundException ex) {
+            throw new InvalidLoginCredentialException("The given email is not registered with an employee account!");
+        }
     }
 }

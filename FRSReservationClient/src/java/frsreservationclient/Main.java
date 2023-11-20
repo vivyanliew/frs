@@ -22,17 +22,14 @@ import util.exception.FlightScheduleNotFoundException;
  */
 public class Main {
 
-    @EJB(name = "CabinClassSessionBeanRemote")
+    @EJB
     private static CabinClassSessionBeanRemote cabinClassSessionBeanRemote;
 
-    @EJB(name = "PassengerSessionBeanRemote")
-    private static PassengerSessionBeanRemote passengerSessionBeanRemote;
+    @EJB
+    private static SeatInventorySessionBeanRemote seatInventorySessionBean;
 
-    @EJB(name = "FlightReservationSessionBeanRemote")
+    @EJB
     private static FlightReservationSessionBeanRemote flightReservationSessionBeanRemote;
-
-    @EJB(name = "SeatInventorySessionBeanRemote")
-    private static SeatInventorySessionBeanRemote seatInventorySessionBeanRemote;
 
     @EJB
     private static FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote;
@@ -48,13 +45,13 @@ public class Main {
 
     @EJB
     private static CustomerSessionBeanRemote customerSessionBeanRemote;
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) throws FlightScheduleNotFoundException {
+   
+    
+    public static void main(String[] args) {
         // TODO code application logic here
-        MainApp mainApp = new MainApp(customerSessionBeanRemote,airportSessionBeanRemote,flightSessionBeanRemote,flightSchedulePlanSessionBeanRemote,flightScheduleSessionBeanRemote,seatInventorySessionBeanRemote,flightReservationSessionBeanRemote,passengerSessionBeanRemote,cabinClassSessionBeanRemote);
+        MainApp mainApp = new MainApp(customerSessionBeanRemote, airportSessionBeanRemote, flightSessionBeanRemote,
+                flightSchedulePlanSessionBeanRemote, flightScheduleSessionBeanRemote, seatInventorySessionBean,
+                flightReservationSessionBeanRemote, cabinClassSessionBeanRemote);
         mainApp.runApp();
     }
     
